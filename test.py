@@ -15,7 +15,7 @@ def find_filenames():
 
 def get_output(filename):
     import subprocess
-    cmd = 'python {} --nodev --iterations 5 --lr 2.0 --train_file {} --test_file {}'.format(filename, os.path.join(DATA_DIR, 'a7a.train'), os.path.join(DATA_DIR, 'a7a.test'))
+    cmd = './{} --nodev --iterations 5 --lr 2.0 --train_file {} --test_file {}'.format(filename, os.path.join(DATA_DIR, 'a7a.train'), os.path.join(DATA_DIR, 'a7a.test'))
     print('Running this command:\n{}'.format(cmd))
     try:
         output = subprocess.check_output(cmd.split()).decode('utf-8')
