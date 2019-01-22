@@ -33,10 +33,12 @@ def perceptron(train_ys, train_xs, dev_ys, dev_xs, args):
         for n in range(train_ys.size):
             if (train_ys[n] * np.dot(train_xs[n,:].reshape(1,-1), weights.reshape(-1,1))) <= 0:
                 weights = weights + args.lr * train_ys[n] * train_xs[n,:]
+        
         if not args.nodev:
             for i in range(dev_ys.size):
                 if (dev_ys[i] * np.dot(dev_xs[i,:].reshape(1,-1), weights.reshape(-1,1))) <= 0:
                     weights = weights + args.lr * dev_ys[i] * dev_xs[i,:]
+        
     return weights
 
 def test_accuracy(weights, test_ys, test_xs):
