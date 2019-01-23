@@ -53,7 +53,7 @@ def perceptron(train_ys, train_xs, dev_ys, dev_xs, args):
         plt.ylim(0.4,1)
         plt.legend(loc = 'lower right')
         plt.show()
-        print('Best number of iteration is: {}'.format(best_index+1))
+        print('Best number of iterations at learning rate = %s is %s' % (args.lr, best_index+1))
         return best
     return weights
 
