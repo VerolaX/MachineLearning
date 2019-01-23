@@ -32,6 +32,7 @@ def perceptron(train_ys, train_xs, dev_ys, dev_xs, args):
     acc_dev = list()
     acc_train = list()
     best = np.zeros(NUM_FEATURES)
+    best_index = 0
     #TODO: implement perceptron algorithm here, respecting args
     for k in range(args.iterations):
         for n in range(train_ys.size):
@@ -44,13 +45,15 @@ def perceptron(train_ys, train_xs, dev_ys, dev_xs, args):
             acc_dev.append(test_accuracy(weights, dev_ys, dev_xs))
             if (k > 0) & (acc_dev[k] > acc_dev[k-1]):
                 best = weights
-    
+                best_index = k
     x = range(1, args.iterations+1)
     if not args.nodev:
-        plt.plot(x, acc_train, 'r--', x, acc_dev, 'g--')
-        plt.ylim(0,1)
-        plt.legend()
+        plt.plot(x, acc_train, 'r--', label = 'train')
+        plt.plot(x, acc_dev, 'g--', label = 'dev')
+        plt.ylim(0.4,1)
+        plt.legend(loc = 'lower right')
         plt.show()
+        print('Best number of iteration is: {}'.format(best_index+1))
         return best
     return weights
 
