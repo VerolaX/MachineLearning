@@ -28,17 +28,19 @@ def parse_data(filename):
 
 def perceptron(train_ys, train_xs, dev_ys, dev_xs, args):
     weights = np.zeros(NUM_FEATURES)
+    acc_dev = list()
+    acc_train = list()
+    max = 0
     #TODO: implement perceptron algorithm here, respecting args
     for k in range(args.iterations):
         for n in range(train_ys.size):
             if (train_ys[n] * np.dot(train_xs[n,:].reshape(1,-1), weights.reshape(-1,1))) <= 0:
                 weights = weights + args.lr * train_ys[n] * train_xs[n,:]
-        
+        acc_train.append(test_accuracy(weights, train_ys, train_xs))
         if not args.nodev:
-            for i in range(dev_ys.size):
-                if (dev_ys[i] * np.dot(dev_xs[i,:].reshape(1,-1), weights.reshape(-1,1))) <= 0:
-                    weights = weights + args.lr * dev_ys[i] * dev_xs[i,:]
-        
+            acc_dev.append(test_accuracy(weights, dev_ys, dev_xs))i
+            if test_accuracy(weights, dev_ys, dev_xs) > max:
+                max = test_accuracy(weights, dev_ys, dev_xs)
     return weights
 
 def test_accuracy(weights, test_ys, test_xs):
@@ -84,9 +86,15 @@ def main():
         dev_ys, dev_xs= parse_data(args.dev_file)
     test_ys, test_xs = parse_data(args.test_file)
     weights = perceptron(train_ys, train_xs, dev_ys, dev_xs, args)
+    acc_train = test_accuracy(weights, train_ys, train_xs)
+    if not args.nodev:
+        acc_dev = test_accuracy(weights, dev_ys, dev_xs)
     accuracy = test_accuracy(weights, test_ys, test_xs)
     print('Test accuracy: {}'.format(accuracy))
     print('Feature weights (bias last): {}'.format(' '.join(map(str,weights))))
+    print('Train accuracy: {}'.format(acc_train))
+    if not args.nodev:
+        print('Dev accuracy: {}'.format(acc_dev))
 
 if __name__ == '__main__':
     main()
