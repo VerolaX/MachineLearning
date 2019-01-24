@@ -2,7 +2,7 @@ Tianyou Xiao
 2985532  txiao3
 CSC246 HW2
 
-This homework requires us to implement the perceptron algorithm based on NumPy. All codes are written in Xiao_perceptron.py. 
+This homework requires us to implement the perceptron algorithm based on NumPy.
 
 Submitted files:
 Xiao_perceptron.py -- source code for this homework
