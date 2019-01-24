@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 #TODO: understand that you should not need any other imports other than those already in this file; if you import something that is not installed by default on the csug machines, your code will crash and you will lose points
 
 NUM_FEATURES = 124 #features are 1 through 123 (123 only in test set), +1 for the bias
 DATA_PATH = "/u/cs246/data/adult/" #TODO: if you are working somewhere other than the csug server, change this to the directory where a7a.train, a7a.dev, and a7a.test are on your machine
-DATA_PATH = '/Users/Robert/Desktop/adult'
+# DATA_PATH = '/Users/Robert/Desktop/adult'
 
 #returns the label and feature value vector for one datapoint (represented as a line (string) from the data file)
 def parse_line(line):
@@ -51,7 +51,7 @@ def perceptron(train_ys, train_xs, dev_ys, dev_xs, args):
                 max_acc = acc_dev[k]
     
     if not args.nodev:
-        
+        '''
         x = range(1, args.iterations+1)
         plt.plot(x, acc_train, 'r--', label = 'train')
         plt.plot(x, acc_dev, 'g--', label = 'dev')
@@ -59,7 +59,7 @@ def perceptron(train_ys, train_xs, dev_ys, dev_xs, args):
         plt.legend(loc = 'lower right')
         plt.show()
         print('Best number of iterations at learning rate = %s is %s' % (args.lr, best_index+1))
-
+        '''
         return best
         
     return weights
