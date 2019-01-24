@@ -34,7 +34,7 @@ def perceptron(train_ys, train_xs, dev_ys, dev_xs, args):
     best_index = 0
     max_acc = 0
     f, axarr = plt.subplots(2, sharex=True)
-    lr_arr = [0.01, 0.05, 0.1, 0.5, 1]
+    lr_arr = [0.001, 0.01, 0.05, 0.1, 1]
     for l in range(len(lr_arr)):
         acc_dev = list()
         acc_train = list()
@@ -67,16 +67,15 @@ def perceptron(train_ys, train_xs, dev_ys, dev_xs, args):
             x = range(1, args.iterations+1)
             sns.set()
             pal = sns.color_palette("Set2", 5)
-            axarr[0].plot(x, acc_train, c=pal[l], label='learning rate = {}'.format(lr_arr[l]), linewidth=2)
+            axarr[0].plot(x, acc_train, c=pal[l], label='learning rate = {}'.format(lr_arr[l]), linewidth=1)
             axarr[0].legend(loc='lower right')
-            axarr[0].set_ylim(0,1)
+            axarr[0].set_ylim(0.2,1)
             axarr[0].set_title('training')
 
-            axarr[1].plot(x, acc_dev, c=pal[l], label='learning rate = {}'.format(lr_arr[l]), linewidth=2)
+            axarr[1].plot(x, acc_dev, c=pal[l], label='learning rate = {}'.format(lr_arr[l]), linewidth=1)
             axarr[1].legend(loc='lower right')
-            axarr[1].set_ylim(0,1)
+            axarr[1].set_ylim(0.2,1)
             axarr[1].set_title('development')
-
 
     plt.show()
 
