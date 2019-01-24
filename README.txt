@@ -2,7 +2,13 @@ Tianyou Xiao
 2985532  txiao3
 CSC246 HW2
 
-This homework requires us to implement the perceptron algorithm. All codes are written in Xiao_perceptron.py. 
+This homework requires us to implement the perceptron algorithm based on NumPy. All codes are written in Xiao_perceptron.py. 
+
+Submitted files:
+Xiao_perceptron.py -- source code for this homework
+test.png -- graph showing some tests based on different numbers of iterations and learning rates
+README.txt
+
 
 In this homework I did some experiments on both numbers of iterations and different learning rates. 
 The plot shows how the model's accuracies on training set and development set changes as number of iterations changes.
