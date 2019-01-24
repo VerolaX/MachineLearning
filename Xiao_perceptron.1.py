@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 #TODO: understand that you should not need any other imports other than those already in this file; if you import something that is not installed by default on the csug machines, your code will crash and you will lose points
 
 NUM_FEATURES = 124 #features are 1 through 123 (123 only in test set), +1 for the bias
@@ -29,37 +30,57 @@ def parse_data(filename):
 
 def perceptron(train_ys, train_xs, dev_ys, dev_xs, args):
     weights = np.zeros(NUM_FEATURES)
-    acc_dev = list()
-    acc_train = list()
     best = np.zeros(NUM_FEATURES)
     best_index = 0
     max_acc = 0
+    f, axarr = plt.subplots(2, sharex=True)
+    lr_arr = [0.01, 0.05, 0.1, 0.5, 1]
+    for l in range(len(lr_arr)):
+        acc_dev = list()
+        acc_train = list()
     #TODO: implement perceptron algorithm here, respecting args
-    for k in range(args.iterations):
-        for n in range(train_ys.size):
-            if (train_ys[n] * np.dot(train_xs[n,:].reshape(1,-1), weights.reshape(-1,1))) <= 0:
-                weights = weights + args.lr * train_ys[n] * train_xs[n,:]
-                if k == 0:
+        for k in range(args.iterations):
+            for n in range(train_ys.size):
+                if (train_ys[n] * np.dot(train_xs[n,:].reshape(1,-1), weights.reshape(-1,1))) <= 0:
+                    weights = weights + lr_arr[l] * train_ys[n] * train_xs[n,:]
+                    if k == 0:
+                        best = weights
+                        max_acc = test_accuracy(weights, train_ys, train_xs)
+            acc_train.append(test_accuracy(weights, train_ys, train_xs))
+            if not args.nodev:
+                acc_dev.append(test_accuracy(weights, dev_ys, dev_xs))
+                if (k > 0) and (acc_dev[k] > max_acc):
                     best = weights
-                    max_acc = test_accuracy(weights, train_ys, train_xs)
-        acc_train.append(test_accuracy(weights, train_ys, train_xs))
-        if not args.nodev:
-            acc_dev.append(test_accuracy(weights, dev_ys, dev_xs))
-            if (k > 0) and (acc_dev[k] > max_acc):
-                best = weights
-                best_index = k
-                max_acc = acc_dev[k]
-    
-    if not args.nodev:
+                    best_index = k
+                    max_acc = acc_dev[k]
         
-        x = range(1, args.iterations+1)
-        plt.plot(x, acc_train, 'r--', label = 'train')
-        plt.plot(x, acc_dev, 'g--', label = 'dev')
-        plt.ylim(0,1)
-        plt.legend(loc = 'lower right')
-        plt.show()
-        print('Best number of iterations at learning rate = %s is %s' % (args.lr, best_index+1))
+        if not args.nodev:
+            '''
+            x = range(1, args.iterations+1)
+            plt.plot(x, acc_train, 'r--', label = 'train')
+            plt.plot(x, acc_dev, 'g--', label = 'dev')
+            plt.ylim(0,1)
+            plt.legend(loc = 'lower right')
+            plt.show()
+            print('Best number of iterations at learning rate = %s is %s' % (args.lr, best_index+1))
+            '''
+            x = range(1, args.iterations+1)
+            sns.set()
+            pal = sns.color_palette("Set2", 5)
+            axarr[0].plot(x, acc_train, c=pal[l], label='learning rate = {}'.format(lr_arr[l]), linewidth=2)
+            axarr[0].legend(loc='lower right')
+            axarr[0].set_ylim(0,1)
+            axarr[0].set_title('training')
 
+            axarr[1].plot(x, acc_dev, c=pal[l], label='learning rate = {}'.format(lr_arr[l]), linewidth=2)
+            axarr[1].legend(loc='lower right')
+            axarr[1].set_ylim(0,1)
+            axarr[1].set_title('development')
+
+
+    plt.show()
+
+    if not args.nodev:
         return best
         
     return weights
