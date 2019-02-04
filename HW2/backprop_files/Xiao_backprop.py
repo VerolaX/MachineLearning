@@ -79,7 +79,19 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
     w1, w2 = extract_weights(model)
     N = train_ys.shape[0]
 
-    
+    for i in range(args.iterations):
+        for n in range(N):
+            x_vector = train_xs[n].reshape(train_xs[n].shape[0], 1)
+            print("x shape", train_xs[n].shape)
+            
+            # forward
+            a1, z1, z1_biased, a2, z2 = forward(model, x_vector)
+            loss = loss_func(train_ys[n], z2)
+
+            # backward
+            
+
+
 
     return model
 

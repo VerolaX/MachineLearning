@@ -65,7 +65,6 @@ def perceptron(train_ys, train_xs, dev_ys, dev_xs, args):
 
 def test_accuracy(weights, test_ys, test_xs):
     accuracy = 0.0
-    #TODO: implement accuracy computation of given weight vector on the test data (i.e. how many test data points are classified correctly by the weight vector)
     result = np.dot(test_xs, weights.T)
     result = np.sign(result)
     pos = 0
