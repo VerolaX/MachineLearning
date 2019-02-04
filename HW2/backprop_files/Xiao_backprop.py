@@ -4,6 +4,7 @@ from io import StringIO
 
 NUM_FEATURES = 124 #features are 1 through 123 (123 only in test set), +1 for the bias
 DATA_PATH = "/u/cs246/data/adult/" #TODO: if doing development somewhere other than the cycle server, change this to the directory where a7a.train, a7a.dev, and a7a.test are
+DATA_PATH = "/Users/Robert/Desktop/ML/adult/"
 
 #returns the label and feature value vector for one datapoint (represented as a line (string) from the data file)
 def parse_line(line):
@@ -45,9 +46,18 @@ def init_model(args):
 
 
     #TODO: Replace this with whatever you want to use to represent the network; you could use use a tuple of (w1,w2), make a class, etc.
-    model = None
-    raise NotImplementedError #TODO: delete this once you implement this function
+    model = (w1, w2)
+    # raise NotImplementedError #TODO: delete this once you implement this function
     return model
+
+def loss_func(y, y_hat):
+    return 1/2 * np.sum(np.square(y - y_hat))
+
+def sigmoid(z):
+    return 1.0/(1.0+np.exp(-z))
+
+def dsigmoid(z):
+    return sigmoid(z)*(1-sigmoid(z))
 
 def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
     #TODO: Implement training for the given model, respecting args
@@ -61,10 +71,10 @@ def test_accuracy(model, test_ys, test_xs):
     return accuracy
 
 def extract_weights(model):
-    w1 = None
-    w2 = None
+    w1 = model[0]
+    w2 = model[1]
     #TODO: Extract the two weight matrices from the model and return them (they should be the same type and shape as they were in init_model, but now they have been updated during training)
-    raise NotImplementedError #TODO: delete this once you implement this function
+    #raise NotImplementedError #TODO: delete this once you implement this function
     return w1, w2
 
 def main():
@@ -121,5 +131,17 @@ def main():
             np.savetxt(weights_string_2,w2)
             print('Output layer weights: {}'.format(weights_string_2.getvalue()))
 
+
+class NN:
+    def __init__(self, input, hid, out):
+        self.input = input
+        self.hid = hid
+        self.out = out
+
+
+
 if __name__ == '__main__':
     main()
+
+
+
