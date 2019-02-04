@@ -69,18 +69,32 @@ def forward(model, input):
     a2 = np.dot(w2, z1_biased)
     z2 = sigmoid(a2)
 
-
+    return a1, z1, z1_biased, a2, z2
 
 
 def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
     #TODO: Implement training for the given model, respecting args
-    raise NotImplementedError #TODO: delete this once you implement this function
+    # raise NotImplementedError #TODO: delete this once you implement this function
+    model = init_model(args)
+    w1, w2 = extract_weights(model)
+    N = train_ys.shape[0]
+
+    
+
     return model
 
 def test_accuracy(model, test_ys, test_xs):
     accuracy = 0.0
     #TODO: Implement accuracy computation of given model on the test data
-    raise NotImplementedError #TODO: delete this once you implement this function
+    # raise NotImplementedError #TODO: delete this once you implement this function
+    result = forward(model, test_xs)
+    result = np.sign(result)
+    pos = 0
+    for i in range(result.size):
+        if result[i] == test_ys[i]:
+            pos = pos + 1
+    #for i in range(test_ys.size):
+    accuracy = pos / test_ys.size
     return accuracy
 
 def extract_weights(model):
