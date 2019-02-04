@@ -77,6 +77,8 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
     # raise NotImplementedError #TODO: delete this once you implement this function
     model = init_model(args)
     w1, w2 = extract_weights(model)
+    print(w1.shape, w2.shape)
+
     N = train_ys.shape[0]
 
     for i in range(args.iterations):
@@ -89,10 +91,32 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
             loss = loss_func(train_ys[n], z2)
 
             # backward
-            
+            delta2 = loss * dsigmoid(z2)
+            # print("del2---------------------", delta2)
+            dweight2 = np.dot(delta2, z1_biased.T)
+            w2_reduced = w2[:, 0:args.hidden_dim]
+            delta1 = delta2 * (w2_reduced.T * dsigmoid(z1))
+            dweight1 = np.dot(delta1, x_vector.T)
+  
+            # Weight matrices update
+            w2 = w2 - args.lr * dweight2
+            w1 = w1 - args.lr * dweight1
+            model = (w1, w2)
 
+        if not args.nodev:
+            acc_train.append(test_accuracy(weights, train_ys, train_xs))
+            acc_dev.append(test_accuracy(weights, dev_ys, dev_xs))
+            if (k > 0) and (acc_dev[k] > max_acc):
+                best = weights
+                best_index = k
+                max_acc = acc_dev[k]
+    
 
+        z2 = forward(model, train_xs.T)[0]
+        #print(loss_func(z2, train_ys.T)/N)
+        #print("Train accu", test_accuracy(model, train_ys, train_xs), " Dev", test_accuracy(model, dev_ys, dev_xs))
 
+    print(model)
     return model
 
 def test_accuracy(model, test_ys, test_xs):
@@ -169,14 +193,6 @@ def main():
         with StringIO() as weights_string_2:
             np.savetxt(weights_string_2,w2)
             print('Output layer weights: {}'.format(weights_string_2.getvalue()))
-
-
-class NN:
-    def __init__(self, input, hid, out):
-        self.input = input
-        self.hid = hid
-        self.out = out
-
 
 
 if __name__ == '__main__':
