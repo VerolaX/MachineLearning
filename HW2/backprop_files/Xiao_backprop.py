@@ -59,6 +59,19 @@ def sigmoid(z):
 def dsigmoid(z):
     return sigmoid(z)*(1-sigmoid(z))
 
+def forward(model, input):
+    w1, w2 = extract_weights(model)
+    a1 = np.dot(w1, input)
+    z1 = sigmoid(a1).reshape(a1.shape[0], 1)
+
+    bias = np.ones((1, z1.shape[1]))
+    z1_biased = np.concatenate((z1, bias), axis = 0)
+    a2 = np.dot(w2, z1_biased)
+    z2 = sigmoid(a2)
+
+
+
+
 def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
     #TODO: Implement training for the given model, respecting args
     raise NotImplementedError #TODO: delete this once you implement this function
