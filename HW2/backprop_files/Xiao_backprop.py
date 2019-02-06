@@ -60,16 +60,22 @@ def dsigmoid(z):
     return sigmoid(z)*(1-sigmoid(z))
 
 def forward(model, input):
+    # input-hidden
     w1, w2 = extract_weights(model)
     a1 = np.dot(w1, input)
-    z1 = sigmoid(a1).reshape(a1.shape[0], 1)
-
+    try:
+        z1 = sigmoid(a1).reshape(a1.shape[0], 1)
+    except:
+        z1 = sigmoid(a1)    
     bias = np.ones((1, z1.shape[1]))
+    print(bias.shape)
     z1_biased = np.concatenate((z1, bias), axis = 0)
+
+    # hidden_output
     a2 = np.dot(w2, z1_biased)
     z2 = sigmoid(a2)
 
-    return a1, z1, z1_biased, a2, z2
+    return a1, z1, z1_biased, a2, z2, z2
 
 
 def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
@@ -77,46 +83,41 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
     # raise NotImplementedError #TODO: delete this once you implement this function
     model = init_model(args)
     w1, w2 = extract_weights(model)
-    print(w1.shape, w2.shape)
+    # print(w1.shape, w2.shape)
 
     N = train_ys.shape[0]
 
     for i in range(args.iterations):
-        for n in range(N):
-            x_vector = train_xs[n].reshape(train_xs[n].shape[0], 1)
-            print("x shape", train_xs[n].shape)
-            
+        for n in range(N):            
             # forward
-            a1, z1, z1_biased, a2, z2 = forward(model, x_vector)
-            loss = loss_func(train_ys[n], z2)
+            a1, z1, z1_biased, a2, z2, y_hat = forward(model, train_xs[n])
+            loss = loss_func(train_ys[n], y_hat)
 
             # backward
-            delta2 = loss * dsigmoid(z2)
-            # print("del2---------------------", delta2)
+            delta2 = (z2-train_ys[n]) * dsigmoid(a2)
             dweight2 = np.dot(delta2, z1_biased.T)
             w2_reduced = w2[:, 0:args.hidden_dim]
             delta1 = delta2 * (w2_reduced.T * dsigmoid(z1))
-            dweight1 = np.dot(delta1, x_vector.T)
+            dweight1 = np.dot(delta1, train_xs[n].T)
   
             # Weight matrices update
             w2 = w2 - args.lr * dweight2
             w1 = w1 - args.lr * dweight1
             model = (w1, w2)
 
-        if not args.nodev:
-            acc_train.append(test_accuracy(weights, train_ys, train_xs))
-            acc_dev.append(test_accuracy(weights, dev_ys, dev_xs))
-            if (k > 0) and (acc_dev[k] > max_acc):
-                best = weights
-                best_index = k
-                max_acc = acc_dev[k]
+        # if not args.nodev:
+        #     acc_train.append(test_accuracy(weights, train_ys, train_xs))
+        #     acc_dev.append(test_accuracy(weights, dev_ys, dev_xs))
+        #     if (k > 0) and (acc_dev[k] > max_acc):
+        #         best = weights
+        #         best_index = k
+        #         max_acc = acc_dev[k]
     
 
-        z2 = forward(model, train_xs.T)[0]
+        z2 = forward(model, train_xs.T)[-1]
         #print(loss_func(z2, train_ys.T)/N)
         #print("Train accu", test_accuracy(model, train_ys, train_xs), " Dev", test_accuracy(model, dev_ys, dev_xs))
 
-    print(model)
     return model
 
 def test_accuracy(model, test_ys, test_xs):
