@@ -25,7 +25,7 @@ def parse_data(filename):
     with open(filename, 'r') as f:
         vals = [parse_line(line) for line in f]
         (ys, xs) = ([v[0] for v in vals],[v[1] for v in vals])
-        return np.asarray([ys],dtype=np.float32).T, np.asarray(xs,dtype=np.float32).reshape(len(xs),NUM_FEATURES,1) #returns a tuple, first is an array of labels, second is an array of feature vectors
+        return np.asarray([ys],dtype=np.float32).T, np.asarray(xs,dtype=np.float32) #returns a tuple, first is an array of labels, second is an array of feature vectors
 
 def init_model(args):
     w1 = None
@@ -58,65 +58,58 @@ def sigmoid(z):
 
 def dsigmoid(z):
     return sigmoid(z)*(1-sigmoid(z))
+    # return z*(1-z)
 
 def forward(model, input):
-    # input-hidden
     w1, w2 = extract_weights(model)
+
+    # Layer-1 Computation
     a1 = np.dot(w1, input)
     try:
         z1 = sigmoid(a1).reshape(a1.shape[0], 1)
     except:
-        z1 = sigmoid(a1)    
-    bias = np.ones((1, z1.shape[1]))
-    print(bias.shape)
-    z1_biased = np.concatenate((z1, bias), axis = 0)
-
-    # hidden_output
-    a2 = np.dot(w2, z1_biased)
+        z1 = sigmoid(a1)
+    # Layer-2 Computation
+    bias_row = np.ones((1, z1.shape[1]))
+    #print("z1 ", z1.shape, " bias ", bias_row.shape)
+    extended_z1 = np.concatenate((z1, bias_row), axis = 0)
+    a2 = np.dot(w2, extended_z1)
     z2 = sigmoid(a2)
 
-    return a1, z1, z1_biased, a2, z2, z2
+    return a1, z1, extended_z1, a2, z2, z2
 
 
 def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
     #TODO: Implement training for the given model, respecting args
     # raise NotImplementedError #TODO: delete this once you implement this function
     model = init_model(args)
-    w1, w2 = extract_weights(model)
+    w1, w2 = model
     # print(w1.shape, w2.shape)
 
     N = train_ys.shape[0]
 
     for i in range(args.iterations):
-        for n in range(N):            
+        print("Iteration ", i)
+        for n in range(N):     
+            x_vector = train_xs[n].reshape(train_xs[n].shape[0], 1)
+
             # forward
-            a1, z1, z1_biased, a2, z2, y_hat = forward(model, train_xs[n])
+            a1, z1, z1_biased, a2, z2, y_hat = forward(model, x_vector)
             loss = loss_func(train_ys[n], y_hat)
 
             # backward
             delta2 = (z2-train_ys[n]) * dsigmoid(a2)
+            #print(delta2.shape)
             dweight2 = np.dot(delta2, z1_biased.T)
-            w2_reduced = w2[:, 0:args.hidden_dim]
-            delta1 = delta2 * (w2_reduced.T * dsigmoid(z1))
-            dweight1 = np.dot(delta1, train_xs[n].T)
+            w2_reduced = w2[:, 0:w2.shape[1]-1]
+            delta1 = delta2 * (w2_reduced.T * dsigmoid(a1))
+
+            dweight1 = np.dot(delta1, x_vector.T)
   
-            # Weight matrices update
             w2 = w2 - args.lr * dweight2
             w1 = w1 - args.lr * dweight1
             model = (w1, w2)
 
-        # if not args.nodev:
-        #     acc_train.append(test_accuracy(weights, train_ys, train_xs))
-        #     acc_dev.append(test_accuracy(weights, dev_ys, dev_xs))
-        #     if (k > 0) and (acc_dev[k] > max_acc):
-        #         best = weights
-        #         best_index = k
-        #         max_acc = acc_dev[k]
-    
-
-        z2 = forward(model, train_xs.T)[-1]
-        #print(loss_func(z2, train_ys.T)/N)
-        #print("Train accu", test_accuracy(model, train_ys, train_xs), " Dev", test_accuracy(model, dev_ys, dev_xs))
 
     return model
 
