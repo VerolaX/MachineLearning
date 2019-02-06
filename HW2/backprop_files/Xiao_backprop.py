@@ -112,10 +112,8 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
     return model
 
 def test_accuracy(model, test_ys, test_xs):
-    accuracy = 0.0
     y_hat = forward(model, test_xs.T)[0]
-
-    return np.sum((test_ys.T == 1) == (y_hat >= 0.5)) / test_xs.shape[0]
+    return np.sum((test_ys.T >= 0.5) == (y_hat >= 0.5)) / test_xs.shape[0]
 
 
 def extract_weights(model):
