@@ -4,7 +4,7 @@ from io import StringIO
 
 NUM_FEATURES = 124 #features are 1 through 123 (123 only in test set), +1 for the bias
 DATA_PATH = "/u/cs246/data/adult/" #TODO: if doing development somewhere other than the cycle server, change this to the directory where a7a.train, a7a.dev, and a7a.test are
-DATA_PATH = "/Users/Robert/Desktop/ML/adult/"
+DATA_PATH = "/Users/Robert/Desktop/ML/adult/" 
 
 #returns the label and feature value vector for one datapoint (represented as a line (string) from the data file)
 def parse_line(line):
@@ -47,86 +47,87 @@ def init_model(args):
 
     #TODO: Replace this with whatever you want to use to represent the network; you could use use a tuple of (w1,w2), make a class, etc.
     model = (w1, w2)
+    #raise NotImplementedError #TODO: delete this once you implement this function
     return model
-
-def loss_func(y, y_hat):
-    return 1/2 * np.sum(np.square(y - y_hat))
 
 def sigmoid(a):
     return 1.0/(1.0+np.exp(-a))
 
 def dsigmoid(a):
     return sigmoid(a)*(1-sigmoid(a))
-    # return z*(1-z)
 
-def forward(model, input):
-    # input-hidden
+def forward_prop(model, X):
     w1, w2 = extract_weights(model)
-    a1 = np.dot(w1, input)
-    # print(input.shape)
+
+    # Layer-1 Computation
+    a1 = np.dot(w1, X)
     try:
         z1 = sigmoid(a1).reshape(a1.shape[0], 1)
     except:
-        z1 = sigmoid(a1)    
-    bias = np.ones((1, z1.shape[1]))
-    z1_biased = np.concatenate((z1, bias), axis = 0)
-
-    # hidden-output
+        z1 = sigmoid(a1)
+    # Layer-2 Computation
+    bias_row = np.ones((1, z1.shape[1]))
+    #print("z1 ", z1.shape, " bias ", bias_row.shape)
+    z1_biased = np.concatenate((z1, bias_row), axis = 0)
     a2 = np.dot(w2, z1_biased)
     z2 = sigmoid(a2)
+    # Cache to store the values (to be used in Backward propagation)
+    cache = {"a1" : a1, "z1" : z1, "z1_biased" : z1_biased, "a2" : a2, "z2" : z2}
 
-    d = {"a1" : a1, "z1" : z1, "z1_biased" : z1_biased, "a2" : a2, "z2" : z2}
+    return z2, cache
 
-    return z2, d
+def loss_func(y, y_hat):
+    return 1/2 * np.sum(np.square(y - y_hat))
 
+def predict(model, X):
+    y_hat, c = forward_prop(model, X)
+    print(y_hat)
+    y_hat = (np.squeeze(y_hat) > 0.50).astype(int)
+    print(y_hat)
 
 def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
     #TODO: Implement training for the given model, respecting args
+    #raise NotImplementedError #TODO: delete this once you implement this function
     model = init_model(args)
     w1, w2 = model
-    # print(w1.shape, w2.shape)
-
     N = train_ys.shape[0]
 
     for i in range(args.iterations):
-        for n in range(N):     
+        for n in range(N):
             x_vector = train_xs[n].reshape(train_xs[n].shape[0], 1)
 
-            # forward
-            y_hat, dic = forward(model, x_vector)
-            loss = loss_func(x_vector, y_hat)
+            y_hat, cache = forward_prop(model, x_vector)
+            loss = loss_func(y_hat, train_ys[n])
 
-            # backward
-            delta2 = (y_hat-train_ys[n]) * dsigmoid(dic["a2"])
-            #print(delta2.shape)
-            dweight2 = np.dot(delta2, dic["z1_biased"].T)
-            w2_reduced = w2[:, 0:w2.shape[1]-1]
-            delta1 = delta2 * (w2_reduced.T * dsigmoid(dic["a1"]))
-
-            dweight1 = np.dot(delta1, x_vector.T)
-  
-            w2 = w2 - args.lr * dweight2
-            w1 = w1 - args.lr * dweight1
+            del2 = (y_hat - train_ys[n]) * dsigmoid(cache["a2"])
+            dw2 = np.dot(del2, cache["z1_biased"].T)
+            reduced_w2 = w2[:, 0:w2.shape[1]-1]
+            del1 = del2 * (reduced_w2.T * dsigmoid(cache["a1"]))
+            dw1 = np.dot(del1, x_vector.T)
+    
+            # Weight matrices update
+            w2 = w2 - args.lr * dw2
+            w1 = w1 - args.lr * dw1
             model = (w1, w2)
-
+       
     return model
 
 def test_accuracy(model, test_ys, test_xs):
     accuracy = 0.0
-    #TODO: Implement accuracy computation of given model on the test data
-    result = np.sign(forward(model, test_xs.T)[0])
-    pos = 0
-    for i in range(result.size):
-        if result.T[i] == test_ys[i]:
-            pos = pos + 1
-    accuracy = pos / test_ys.size
+    N = test_xs.shape[0]
+    y_hat = forward_prop(model, test_xs.T)[0]
+    
+    y = test_ys.T == 1
+    y_hat = y_hat >= 0.5
+    accuracy = np.sum(y == y_hat)
+    accuracy = accuracy/N
     return accuracy
-
 
 def extract_weights(model):
     w1 = model[0]
     w2 = model[1]
     #TODO: Extract the two weight matrices from the model and return them (they should be the same type and shape as they were in init_model, but now they have been updated during training)
+    #raise NotImplementedError #TODO: delete this once you implement this function
     return w1, w2
 
 def main():
@@ -169,7 +170,7 @@ def main():
     if not args.nodev:
         dev_ys, dev_xs= parse_data(args.dev_file)
     test_ys, test_xs = parse_data(args.test_file)
-
+    
     model = init_model(args)
     model = train_model(model, train_ys, train_xs, dev_ys, dev_xs, args)
     accuracy = test_accuracy(model, test_ys, test_xs)
@@ -183,9 +184,5 @@ def main():
             np.savetxt(weights_string_2,w2)
             print('Output layer weights: {}'.format(weights_string_2.getvalue()))
 
-
 if __name__ == '__main__':
     main()
-
-
-
