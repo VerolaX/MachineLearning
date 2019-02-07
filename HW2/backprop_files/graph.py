@@ -97,6 +97,9 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
 
     for l in range(len(lr_arr)):
         acc_train, acc_dev = list(),list()
+        best_iter = 0
+        model_o = init_model(args)
+        model = model_o
         for i in range(args.iterations):
             for n in range(train_ys.shape[0]):     
                 x_vector = train_xs[n].reshape(train_xs[n].shape[0], 1)
@@ -144,13 +147,13 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
             axarr[1].legend(loc='lower right')
             axarr[1].set_ylim(0.2,1)
             axarr[1].set_title('development')
+            print('Best number of iterations at learning rate = %s, hidden layer dimension = %s is %s' % (lr_arr[l], args.hidden_dim, best_iter+1))
+            print('Accuracy: {}'.format(acc_dev[best_iter]))
 
     plt.show()
 
-
     if not args.nodev:
         return model_o
-
 
     return model
 
