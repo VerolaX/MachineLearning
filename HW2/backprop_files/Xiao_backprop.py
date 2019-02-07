@@ -108,16 +108,16 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
             model = (w1, w2)
 
         if not args.nodev:
-                acc_train.append(test_accuracy(model, train_ys, train_xs))
-                acc_dev.append(test_accuracy(model, dev_ys, dev_xs))
-                if i == 0:
-                    max_acc = test_accuracy(model, dev_ys, dev_xs)
-                    best_iter = 0
-                    model_o = w1, w2
-                elif (i > 0) and (acc_dev[i] > max_acc):
-                    best_iter = i
-                    model_o = w1, w2
-                    max_acc = acc_dev[i]
+            acc_train.append(test_accuracy(model, train_ys, train_xs))
+            acc_dev.append(test_accuracy(model, dev_ys, dev_xs))
+            if i == 0:
+                max_acc = test_accuracy(model, dev_ys, dev_xs)
+                best_iter = 0
+                model_o = w1, w2
+            elif (i > 0) and (acc_dev[i] > max_acc):
+                best_iter = i
+                model_o = w1, w2
+                max_acc = acc_dev[i]
 
     if not args.nodev:
         print('Best number of iterations at learning rate = %s, hidden layer dimension = %s is %s' % (args.lr, args.hidden_dim, best_iter+1))
