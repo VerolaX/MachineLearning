@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import numpy as np
 from io import StringIO
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 NUM_FEATURES = 124 #features are 1 through 123 (123 only in test set), +1 for the bias
 DATA_PATH = "/u/cs246/data/adult/" #TODO: if doing development somewhere other than the cycle server, change this to the directory where a7a.train, a7a.dev, and a7a.test are
@@ -84,30 +86,70 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
     #TODO: Implement training for the given model, respecting args
     model = init_model(args)
     w1, w2 = model
-    N = train_ys.shape[0]
+    model_o = model
+    acc_train, acc_dev = list(),list()
+    best_iter, best_hid = 0,0
+    max_acc = 0
+    
+    # plot and experiments
+    f, axarr = plt.subplots(2, sharex=True)
+    lr_arr = [0.001, 0.005, 0.01, 0.05, 0.1, 1]
 
-    for i in range(args.iterations):
-        for n in range(N):     
-            x_vector = train_xs[n].reshape(train_xs[n].shape[0], 1)
+    for l in range(len(lr_arr)):
+        acc_train, acc_dev = list(),list()
+        for i in range(args.iterations):
+            for n in range(train_ys.shape[0]):     
+                x_vector = train_xs[n].reshape(train_xs[n].shape[0], 1)
 
-            # forward
-            y_hat, dic = forward(model, x_vector)
-            loss = loss_func(x_vector, y_hat)
+                # forward
+                y_hat, dic = forward(model, x_vector)
+                loss = loss_func(x_vector, y_hat)
 
-            # backward
-            delta2 = (y_hat-train_ys[n]) * dsigmoid(dic["a2"])
-            #print(delta2.shape)
-            dweight2 = np.dot(delta2, dic["z1_biased"].T)
-            w2_reduced = w2[:, 0:w2.shape[1]-1]
-            delta1 = delta2 * (w2_reduced.T * dsigmoid(dic["a1"]))
+                # backward
+                delta2 = (y_hat-train_ys[n]) * dsigmoid(dic["a2"])
+                #print(delta2.shape)
+                dweight2 = np.dot(delta2, dic["z1_biased"].T)
+                w2_reduced = w2[:, 0:w2.shape[1]-1]
+                delta1 = delta2 * (w2_reduced.T * dsigmoid(dic["a1"]))
 
-            dweight1 = np.dot(delta1, x_vector.T)
-  
-            w2 = w2 - args.lr * dweight2
-            w1 = w1 - args.lr * dweight1
-            model = (w1, w2)
+                dweight1 = np.dot(delta1, x_vector.T)
+    
+                w2 = w2 - lr_arr[l] * dweight2
+                w1 = w1 - lr_arr[l] * dweight1
+                model = (w1, w2)
 
-        # if not args.nodev:
+                #initialize the values at the first iteration
+                if i == 0 and not args.nodev:
+                    model_o = model
+                    max_acc = test_accuracy(model, train_ys, train_xs)
+
+            if not args.nodev:
+                acc_train.append(test_accuracy(model, train_ys, train_xs))
+                acc_dev.append(test_accuracy(model, dev_ys, dev_xs))
+                if (i > 0) and (acc_dev[i] > max_acc):
+                    best_iter = i
+                    model_o = w1, w2
+                    max_acc = acc_dev[i]
+
+        if not args.nodev:
+            x = range(1, args.iterations+1)
+            sns.set()
+            pal = sns.color_palette("Set2", 6)
+            axarr[0].plot(x, acc_train, c=pal[l], label='learning rate = {}'.format(lr_arr[l]), linewidth=1)
+            axarr[0].legend(loc='lower right')
+            axarr[0].set_ylim(0.2,1)
+            axarr[0].set_title('training')
+
+            axarr[1].plot(x, acc_dev, c=pal[l], label='learning rate = {}'.format(lr_arr[l]), linewidth=1)
+            axarr[1].legend(loc='lower right')
+            axarr[1].set_ylim(0.2,1)
+            axarr[1].set_title('development')
+
+    plt.show()
+
+
+    if not args.nodev:
+        return model_o
 
 
     return model

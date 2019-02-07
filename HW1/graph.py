@@ -43,7 +43,7 @@ def perceptron(train_ys, train_xs, dev_ys, dev_xs, args):
             for n in range(train_ys.size):
                 if (train_ys[n] * np.dot(train_xs[n,:].reshape(1,-1), weights.reshape(-1,1))) <= 0:
                     weights = weights + lr_arr[l] * train_ys[n] * train_xs[n,:]
-                    if k == 0:
+                    if k == 0 and not args.nodev:
                         best = weights
                         max_acc = test_accuracy(weights, train_ys, train_xs)
             acc_train.append(test_accuracy(weights, train_ys, train_xs))
