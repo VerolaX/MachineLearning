@@ -15,5 +15,5 @@ From the graph, we can tell that the model converges extremely fast (almost conv
 Meanwhile, the value of learning rates also does not affect the accuracies much. Accuracies of all combinations of iterations and learning rates remain around 0.75-0.83.
 There is also almost no difference between the accuracies between the performances on training data and development data. I guess the reason is that the dataset is just too small.
 
-If "--nodev" argument is provided, development data will not be used. Otherwise, the algorithm will evaluate how the model performs after each iteration and save the best model with its iteration number. The function will ultimately return the best model and indicate the best iteration number as whhell.
+If "--nodev" argument is provided, development data will not be used. Otherwise, the algorithm will evaluate how the model performs after each iteration and save the best model with its iteration number. The function will ultimately return the best model and indicate the best iteration number as well.
 
