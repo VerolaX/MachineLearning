@@ -84,8 +84,6 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
     #TODO: Implement training for the given model, respecting args
     model = init_model(args)
     w1, w2 = model
-    # print(w1.shape, w2.shape)
-
     N = train_ys.shape[0]
 
     for i in range(args.iterations):
@@ -108,6 +106,9 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
             w2 = w2 - args.lr * dweight2
             w1 = w1 - args.lr * dweight1
             model = (w1, w2)
+
+        #if not args.nodev:
+
 
     return model
 
