@@ -43,8 +43,6 @@ def init_model(args):
         w2 = np.random.rand(1, args.hidden_dim + 1) #add bias column
 
     #At this point, w1 has shape (hidden_dim, NUM_FEATURES) and w2 has shape (1, hidden_dim + 1). In both, the last column is the bias weights.
-
-
     #TODO: Replace this with whatever you want to use to represent the network; you could use use a tuple of (w1,w2), make a class, etc.
     model = (w1, w2)
     return model
@@ -84,10 +82,13 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
     #TODO: Implement training for the given model, respecting args
     model = init_model(args)
     w1, w2 = model
-    N = train_ys.shape[0]
+    model_o = model
+    acc_train, acc_dev = list(),list()
+    best_iter, best_hid = 0,0
+    max_acc = 0
 
     for i in range(args.iterations):
-        for n in range(N):     
+        for n in range(train_ys.shape[0]):     
             x_vector = train_xs[n].reshape(train_xs[n].shape[0], 1)
 
             # forward
@@ -96,20 +97,32 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
 
             # backward
             delta2 = (y_hat-train_ys[n]) * dsigmoid(dic["a2"])
-            #print(delta2.shape)
             dweight2 = np.dot(delta2, dic["z1_biased"].T)
             w2_reduced = w2[:, 0:w2.shape[1]-1]
             delta1 = delta2 * (w2_reduced.T * dsigmoid(dic["a1"]))
-
             dweight1 = np.dot(delta1, x_vector.T)
-  
+            
+            #update
             w2 = w2 - args.lr * dweight2
             w1 = w1 - args.lr * dweight1
             model = (w1, w2)
 
-        #if not args.nodev:
+            #initialize the values at the first iteration
+            if i == 0 and not args.nodev:
+                model_o = model
+                max_acc = test_accuracy(model, train_ys, train_xs)
 
+        if not args.nodev:
+            acc_train.append(test_accuracy(model, train_ys, train_xs))
+            acc_dev.append(test_accuracy(model, dev_ys, dev_xs))
+            if (i > 0) and (acc_dev[i] > max_acc):
+                best_iter = i
+                model_o = w1, w2
+                max_acc = acc_dev[i]
 
+    if not args.nodev:
+        return model_o
+    
     return model
 
 def test_accuracy(model, test_ys, test_xs):
