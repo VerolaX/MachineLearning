@@ -96,10 +96,12 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
     lr_arr = [0.001, 0.005, 0.01, 0.05, 0.1, 1]
 
     for l in range(len(lr_arr)):
-        acc_train, acc_dev = list(),list()
+        acc_train = list()
+        acc_dev = list()
         best_iter = 0
         model_o = init_model(args)
         model = model_o
+        w1, w2 = model
         for i in range(args.iterations):
             for n in range(train_ys.shape[0]):     
                 x_vector = train_xs[n].reshape(train_xs[n].shape[0], 1)
@@ -121,15 +123,14 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
                 w1 = w1 - lr_arr[l] * dweight1
                 model = (w1, w2)
 
-                #initialize the values at the first iteration
-                if i == 0 and not args.nodev:
-                    model_o = model
-                    max_acc = test_accuracy(model, train_ys, train_xs)
-
             if not args.nodev:
                 acc_train.append(test_accuracy(model, train_ys, train_xs))
                 acc_dev.append(test_accuracy(model, dev_ys, dev_xs))
-                if (i > 0) and (acc_dev[i] > max_acc):
+                if i == 0:
+                    max_acc = test_accuracy(model, dev_ys, dev_xs)
+                    best_iter = 0
+                    model_o = w1, w2
+                elif (i > 0) and (acc_dev[i] > max_acc):
                     best_iter = i
                     model_o = w1, w2
                     max_acc = acc_dev[i]
@@ -138,15 +139,15 @@ def train_model(model, train_ys, train_xs, dev_ys, dev_xs, args):
             x = range(1, args.iterations+1)
             sns.set()
             pal = sns.color_palette("Set2", 6)
-            axarr[0].plot(x, acc_train, c=pal[l], label='learning rate = {}'.format(lr_arr[l]), linewidth=1)
+            axarr[0].plot(x, acc_train, c=pal[l], label='lr={}'.format(lr_arr[l]), linewidth=1)
             axarr[0].legend(loc='lower right')
             axarr[0].set_ylim(0.2,1)
-            axarr[0].set_title('training')
+            axarr[0].set_title('Training')
 
-            axarr[1].plot(x, acc_dev, c=pal[l], label='learning rate = {}'.format(lr_arr[l]), linewidth=1)
+            axarr[1].plot(x, acc_dev, c=pal[l], label='lr={}'.format(lr_arr[l]), linewidth=1)
             axarr[1].legend(loc='lower right')
             axarr[1].set_ylim(0.2,1)
-            axarr[1].set_title('development')
+            axarr[1].set_title('Dev')
             print('Best number of iterations at learning rate = %s, hidden layer dimension = %s is %s' % (lr_arr[l], args.hidden_dim, best_iter+1))
             print('Accuracy: {}'.format(acc_dev[best_iter]))
 

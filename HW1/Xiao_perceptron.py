@@ -39,7 +39,7 @@ def perceptron(train_ys, train_xs, dev_ys, dev_xs, args):
                 weights = weights + args.lr * train_ys[n] * train_xs[n,:]
                 if k == 0 and not args.nodev:
                     best = weights
-                    max_acc = test_accuracy(weights, train_ys, train_xs)
+                    max_acc = test_accuracy(weights, dev_ys, dev_xs)
         if not args.nodev:
             acc_train.append(test_accuracy(weights, train_ys, train_xs))
             acc_dev.append(test_accuracy(weights, dev_ys, dev_xs))
