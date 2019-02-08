@@ -4,7 +4,7 @@ from io import StringIO
 
 NUM_FEATURES = 124 #features are 1 through 123 (123 only in test set), +1 for the bias
 DATA_PATH = "/u/cs246/data/adult/" #TODO: if doing development somewhere other than the cycle server, change this to the directory where a7a.train, a7a.dev, and a7a.test are
-DATA_PATH = "/Users/Robert/Desktop/ML/adult/"
+#DATA_PATH = "/Users/Robert/Desktop/ML/adult/"
 
 #returns the label and feature value vector for one datapoint (represented as a line (string) from the data file)
 def parse_line(line):

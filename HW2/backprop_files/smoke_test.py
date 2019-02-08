@@ -4,7 +4,8 @@ import sys
 import os
 
 DATA_DIR = '/u/cs246/data/adult/' #TODO: change this to wherever you put the data if working on a different machine
-DATA_DIR = '/Users/Robert/Desktop/ML/adult/'
+#DATA_DIR = '/Users/Robert/Desktop/ML/adult/'
+
 def err(msg):
     print('ERROR: {}'.format(msg), file=sys.stderr)
     exit()
