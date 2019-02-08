@@ -4,7 +4,7 @@ import sys
 import os
 
 DATA_DIR = '/u/cs246/data/adult/' #TODO: change this to wherever you put the data if working on a different machine
-#DATA_DIR = '/Users/Robert/Desktop/ML/adult/'
+SIGFIG_NUM = 5
 
 def err(msg):
     print('ERROR: {}'.format(msg), file=sys.stderr)
@@ -61,7 +61,7 @@ def fuzzy_match(line, req):
                 return False
             elif type(l) == str and l != r:
                 return False
-            elif type(l) == float and round_to_sigfigs(l,6) != round_to_sigfigs(r,6): #float
+            elif type(l) == float and round_to_sigfigs(l,SIGFIG_NUM) != round_to_sigfigs(r,SIGFIG_NUM): #float
                 return False
         return True
 
@@ -88,7 +88,7 @@ def verify_output(output):
             print('Output weights are correct!')
             got_ow = True
     if not (got_acc and got_hw1 and got_hw2 and got_ow):
-        err('Unable to find one or more required output lines. Make sure each is on its own line and formatted correctly; if so, then there is an implementation problem. This should have produced (with all numbers matched to 6 significant figures):\n{}\n{}\n{}\n{}\n\n'.format(' '.join(map(str,acc_req)),' '.join(map(str,hidden_weight_req1)),' '.join(map(str,hidden_weight_req2)),' '.join(map(str,output_weight_req))))
+        err('Unable to find one or more required output lines. Make sure each is on its own line and formatted correctly; if so, then there is an implementation problem. This should have produced (with all numbers matched to {} significant figures):\n{}\n{}\n{}\n{}\n\n'.format(SIGFIG_NUM,' '.join(map(str,acc_req)),' '.join(map(str,hidden_weight_req1)),' '.join(map(str,hidden_weight_req2)),' '.join(map(str,output_weight_req))))
 
 def main():
     filenames = find_filenames()
