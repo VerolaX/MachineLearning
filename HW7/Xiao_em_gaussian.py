@@ -4,9 +4,9 @@ if not __file__.endswith('_em_gaussian.py'):
     print('ERROR: This file is not named correctly! Please name it as LastName_em_gaussian.py (replacing LastName with your last name)!')
     exit(1)
 
-DATA_PATH = "/u/cs246/data/em/" #TODO: if doing development somewhere other than the cycle server (not recommended), then change this to the directory where your data file is (points.dat)
+# DATA_PATH = "/u/cs246/data/em/" #TODO: if doing development somewhere other than the cycle server (not recommended), then change this to the directory where your data file is (points.dat)
 # DATA_PATH = '/home/tianyou/MachineLearning/HW7/'
-# DATA_PATH ='/Users/Robert/Desktop/MachineLearning/HW7/'
+DATA_PATH ='/Users/Robert/Desktop/MachineLearning/HW7/'
 
 
 def parse_data(args):
@@ -52,9 +52,7 @@ def init_model(args):
                 sigmas[c] += np.identity(2)
 
         else:
-            # rand_sigmas = list(np.random.rand(int((args.cluster_num ** 2 - args.cluster_num) / 2) + args.cluster_num))
-            print(int((args.cluster_num ** 2 - args.cluster_num) / 2) + args.cluster_num)
-            rand_sigmas = list(np.random.rand(3))
+            rand_sigmas = list(np.random.rand(1000))
             for i in range(2):
                 for j in range(i, 2):
                     sigmas[i][j] = rand_sigmas.pop()
@@ -91,52 +89,37 @@ def train_model(model, train_xs, dev_xs, args):
     #NOTE: you can use multivariate_normal like this:
     #probability_of_xn_given_mu_and_sigma = multivariate_normal(mean=mu, cov=sigma).pdf(xn)
 
-    res=np.zeros((train_xs.shape[0],args.cluster_num))
+    res = np.zeros((train_xs.shape[0], args.cluster_num))
     if not args.tied:
         for iter in range(args.iterations):
             for j in range(train_xs.shape[0]):
                 de = 0
                 for i in range(args.cluster_num):
-                    # print(model.sigmas[i],i)
-                    de += (model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas[i]). \
-                           pdf(train_xs[j]))
+                    s += (model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas[i]).pdf(train_xs[j]))
                 for z in range(args.cluster_num):
-                    res[j][z] = ((model.lambdas[z] * multivariate_normal(mean=model.mus[z], cov=model.sigmas[z]).pdf(
-                        train_xs[j])) / de)
-            # M
-            for i in range(args.cluster_num):
-                NK = sum([res[x][i] for x in range(train_xs.shape[0])])
-                model.mus[i] = sum([res[x][i] * train_xs[x] for x in range(train_xs.shape[0])]) / NK
+                    res[j][z] = ((model.lambdas[z] * multivariate_normal(mean=model.mus[z], cov=model.sigmas[z]).pdf(train_xs[j])) / s)
 
-                model.sigmas[i] = sum(
-                    [res[x][i] / NK * (
-                                np.array([train_xs[x] - model.mus[i]]) * np.array([train_xs[x] - model.mus[i]]).T)
-                     for x in range(train_xs.shape[0])])
-                # print( ((np.array([train_xs[2] - model.mus[i]]) ).shape))
-                model.lambdas[i] = NK / train_xs.shape[0]
+            for i in range(args.cluster_num):
+                Nk = sum([res[x][i] for x in range(train_xs.shape[0])])
+                model.mus[i] = sum([res[x][i] * train_xs[x] for x in range(train_xs.shape[0])]) / Nk
+
+                model.sigmas[i] = sum([res[x][i] / Nk * (np.array([train_xs[x] - model.mus[i]]) * np.array([train_xs[x] - model.mus[i]]).T)for x in range(train_xs.shape[0])])
+                model.lambdas[i] = Nk / train_xs.shape[0]
 
     else:
         for iter in range(args.iterations):
             for j in range(train_xs.shape[0]):
                 de = 0
                 for i in range(args.cluster_num):
-                    # print(model.sigmas[i],i)
-                    de += (model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas). \
-                           pdf(train_xs[j]))
+                    de += (model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas).pdf(train_xs[j]))
                 for z in range(args.cluster_num):
-                    res[j][z] = ((model.lambdas[z] * multivariate_normal(mean=model.mus[z], cov=model.sigmas).pdf(
-                        train_xs[j])) / de)
-            # M
-            for i in range(args.cluster_num):
-                NK = sum([res[x][i] for x in range(train_xs.shape[0])])
-                model.mus[i] = sum([res[x][i] * train_xs[x] for x in range(train_xs.shape[0])]) / NK
+                    res[j][z] = ((model.lambdas[z] * multivariate_normal(mean=model.mus[z], cov=model.sigmas).pdf(train_xs[j])) / de)
 
-                model.sigmas = sum(
-                    [res[x][i] / NK * (
-                                np.array([train_xs[x] - model.mus[i]]) * np.array([train_xs[x] - model.mus[i]]).T)
-                     for x in range(train_xs.shape[0])])
-                # print( ((np.array([train_xs[2] - model.mus[i]]) ).shape))
-                model.lambdas[i] = NK / train_xs.shape[0]
+            for i in range(args.cluster_num):
+                Nk = sum([res[x][i] for x in range(train_xs.shape[0])])
+                model.mus[i] = sum([res[x][i] * train_xs[x] for x in range(train_xs.shape[0])]) / Nk
+                model.sigmas = sum([res[x][i] / Nk * (np.array([train_xs[x] - model.mus[i]]) * np.array([train_xs[x] - model.mus[i]]).T) for x in range(train_xs.shape[0])])
+                model.lambdas[i] = Nk / train_xs.shape[0]
     #NOTE: you can use multivariate_normal like this:
     #probability_of_xn_given_mu_and_sigma = multivariate_normal(mean=mu, cov=sigma).pdf(xn)
     #TODO: train the model, respecting args (note that dev_xs is None if args.nodev is True)
