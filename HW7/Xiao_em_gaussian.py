@@ -5,7 +5,9 @@ if not __file__.endswith('_em_gaussian.py'):
     exit(1)
 
 # DATA_PATH = "/u/cs246/data/em/" #TODO: if doing development somewhere other than the cycle server (not recommended), then change this to the directory where your data file is (points.dat)
-DATA_PATH = '/home/tianyou/MachineLearning/HW7/'
+# DATA_PATH = '/home/tianyou/MachineLearning/HW7/'
+DATA_PATH ='/Users/Robert/Desktop/MachineLearning/HW7/'
+
 
 def parse_data(args):
     num = float
@@ -85,9 +87,6 @@ def train_model(model, train_xs, dev_xs, args):
     from scipy.stats import multivariate_normal
     #NOTE: you can use multivariate_normal like this:
     #probability_of_xn_given_mu_and_sigma = multivariate_normal(mean=mu, cov=sigma).pdf(xn)
-    mu=model.mus
-    sigma=model.sigmas
-    lambdas=model.lambdas
 
     res=np.zeros((train_xs.shape[0],args.cluster_num))
     if not args.tied:
