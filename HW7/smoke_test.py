@@ -3,7 +3,9 @@ import sys
 import os
 
 # DATA_DIR = '/u/cs246/data/em/' #TODO: change this to wherever you put the data if working on a different machine
-DATA_DIR = '/Users/Robert/Desktop/MachineLearning/HW7/'
+# DATA_DIR = '/Users/Robert/Desktop/MachineLearning/HW7/'
+DATA_DIR = '/home/tianyou/MachineLearning/HW7/'
+
 SIGFIG_NUM = 5
 
 def err(msg):
