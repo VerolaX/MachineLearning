@@ -146,13 +146,13 @@ def average_log_likelihood(model, data, args):
     ll = 0.0
     # raise NotImplementedError #remove when average log likelihood calculation is implemented
     for line in data:
-        count = 0
+        l = 0
         for i in range(len(model.lambdas)):
             if len(model.sigmas.shape) == 3:
-                count += model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas[i]).pdf(line)
+                l += model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas[i]).pdf(line)
             else:
-                count += model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas).pdf(line)
-        ll += log(count)
+                l += model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas).pdf(line)
+        ll += log(l)
     ll = ll / data.shape[0]
     return ll
 
