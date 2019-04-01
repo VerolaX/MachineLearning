@@ -52,14 +52,17 @@ def init_model(args):
                 sigmas[c] += np.identity(2)
 
         else:
-            rand_sigmas = list(np.random.rand(int((args.cluster_num ** 2 - args.cluster_num) / 2) + args.cluster_num))
+            # rand_sigmas = list(np.random.rand(int((args.cluster_num ** 2 - args.cluster_num) / 2) + args.cluster_num))
+            print(int((args.cluster_num ** 2 - args.cluster_num) / 2) + args.cluster_num)
+            rand_sigmas = list(np.random.rand(3))
             for i in range(2):
                 for j in range(i, 2):
-                    sigmas[i][j] = rand_sigmas.pop()+1
+                    sigmas[i][j] = rand_sigmas.pop()
             for i in range(1, 2):
                 for j in range(i):
                     sigmas[j][i] = sigmas[i][j]
             sigmas += np.identity(2)
+
     else:
         lambdas = []
         mus = []
@@ -111,6 +114,7 @@ def train_model(model, train_xs, dev_xs, args):
                      for x in range(train_xs.shape[0])])
                 # print( ((np.array([train_xs[2] - model.mus[i]]) ).shape))
                 model.lambdas[i] = NK / train_xs.shape[0]
+                
     else:
         for iter in range(args.iterations):
             for j in range(train_xs.shape[0]):
