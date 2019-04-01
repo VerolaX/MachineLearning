@@ -4,9 +4,9 @@ if not __file__.endswith('_em_gaussian.py'):
     print('ERROR: This file is not named correctly! Please name it as LastName_em_gaussian.py (replacing LastName with your last name)!')
     exit(1)
 
-# DATA_PATH = "/u/cs246/data/em/" #TODO: if doing development somewhere other than the cycle server (not recommended), then change this to the directory where your data file is (points.dat)
+DATA_PATH = "/u/cs246/data/em/" #TODO: if doing development somewhere other than the cycle server (not recommended), then change this to the directory where your data file is (points.dat)
 # DATA_PATH = '/home/tianyou/MachineLearning/HW7/'
-DATA_PATH ='/Users/Robert/Desktop/MachineLearning/HW7/'
+# DATA_PATH ='/Users/Robert/Desktop/MachineLearning/HW7/'
 
 
 def parse_data(args):
@@ -114,7 +114,7 @@ def train_model(model, train_xs, dev_xs, args):
                      for x in range(train_xs.shape[0])])
                 # print( ((np.array([train_xs[2] - model.mus[i]]) ).shape))
                 model.lambdas[i] = NK / train_xs.shape[0]
-                
+
     else:
         for iter in range(args.iterations):
             for j in range(train_xs.shape[0]):
