@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-if not __file__.endswith('_em_gaussian.py'):
-    print('ERROR: This file is not named correctly! Please name it as LastName_em_gaussian.py (replacing LastName with your last name)!')
-    exit(1)
+# if not __file__.endswith('_em_gaussian.py'):
+#     print('ERROR: This file is not named correctly! Please name it as LastName_em_gaussian.py (replacing LastName with your last name)!')
+#     exit(1)
 
 # DATA_PATH = "/u/cs246/data/em/" #TODO: if doing development somewhere other than the cycle server (not recommended), then change this to the directory where your data file is (points.dat)
 # DATA_PATH = '/home/tianyou/MachineLearning/HW7/'
 DATA_PATH ='/Users/Robert/Desktop/MachineLearning/HW7/'
 
-cluster_nums = [1, 2, 3, 5, 10, 20, 50]
-iterations = [1, 2, 5, 10, 20, 50]
 
 def parse_data(args):
     num = float
@@ -40,7 +36,6 @@ def init_model(args):
         else:
             sigmas = np.zeros((2,2))
         #TODO: randomly initialize clusters (lambdas, mus, and sigmas)
-        # raise NotImplementedError #remove when random initialization is implemented
         lambdas = np.random.rand(args.cluster_num)
         mus = np.random.rand(args.cluster_num, 2)
         
@@ -85,7 +80,6 @@ def init_model(args):
     #TODO: do whatever you want to pack the lambdas, mus, and sigmas into the model variable (just a tuple, or a class, etc.)
     #NOTE: if args.tied was provided, sigmas will have a different shape
     model = models(lambdas,mus,sigmas)
-    # raise NotImplementedError #remove when model initialization is implemented
     return model
 
 def train_model(model, train_xs, dev_xs, args):
@@ -93,41 +87,40 @@ def train_model(model, train_xs, dev_xs, args):
     #NOTE: you can use multivariate_normal like this:
     #probability_of_xn_given_mu_and_sigma = multivariate_normal(mean=mu, cov=sigma).pdf(xn)
 
-    res = np.zeros((train_xs.shape[0], args.cluster_num))
+    mat = np.zeros((train_xs.shape[0], args.cluster_num))
     if not args.tied:
         for iter in range(args.iterations):
             for j in range(train_xs.shape[0]):
-                de = 0
+                s = 0
                 for i in range(args.cluster_num):
                     s += (model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas[i]).pdf(train_xs[j]))
                 for z in range(args.cluster_num):
-                    res[j][z] = ((model.lambdas[z] * multivariate_normal(mean=model.mus[z], cov=model.sigmas[z]).pdf(train_xs[j])) / s)
+                    mat[j][z] = ((model.lambdas[z] * multivariate_normal(mean=model.mus[z], cov=model.sigmas[z]).pdf(train_xs[j])) / s)
 
             for i in range(args.cluster_num):
-                Nk = sum([res[x][i] for x in range(train_xs.shape[0])])
-                model.mus[i] = sum([res[x][i] * train_xs[x] for x in range(train_xs.shape[0])]) / Nk
+                Nk = sum([mat[x][i] for x in range(train_xs.shape[0])])
+                model.mus[i] = sum([mat[x][i] * train_xs[x] for x in range(train_xs.shape[0])]) / Nk
 
-                model.sigmas[i] = sum([res[x][i] / Nk * (np.array([train_xs[x] - model.mus[i]]) * np.array([train_xs[x] - model.mus[i]]).T)for x in range(train_xs.shape[0])])
+                model.sigmas[i] = sum([mat[x][i] / Nk * (np.array([train_xs[x] - model.mus[i]]) * np.array([train_xs[x] - model.mus[i]]).T)for x in range(train_xs.shape[0])])
                 model.lambdas[i] = Nk / train_xs.shape[0]
 
     else:
         for iter in range(args.iterations):
             for j in range(train_xs.shape[0]):
-                de = 0
+                s = 0
                 for i in range(args.cluster_num):
-                    de += (model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas).pdf(train_xs[j]))
+                    s += (model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas).pdf(train_xs[j]))
                 for z in range(args.cluster_num):
-                    res[j][z] = ((model.lambdas[z] * multivariate_normal(mean=model.mus[z], cov=model.sigmas).pdf(train_xs[j])) / de)
+                    mat[j][z] = ((model.lambdas[z] * multivariate_normal(mean=model.mus[z], cov=model.sigmas).pdf(train_xs[j])) / s)
 
             for i in range(args.cluster_num):
-                Nk = sum([res[x][i] for x in range(train_xs.shape[0])])
-                model.mus[i] = sum([res[x][i] * train_xs[x] for x in range(train_xs.shape[0])]) / Nk
-                model.sigmas = sum([res[x][i] / Nk * (np.array([train_xs[x] - model.mus[i]]) * np.array([train_xs[x] - model.mus[i]]).T) for x in range(train_xs.shape[0])])
+                Nk = sum([mat[x][i] for x in range(train_xs.shape[0])])
+                model.mus[i] = sum([mat[x][i] * train_xs[x] for x in range(train_xs.shape[0])]) / Nk
+                model.sigmas = sum([mat[x][i] / Nk * (np.array([train_xs[x] - model.mus[i]]) * np.array([train_xs[x] - model.mus[i]]).T) for x in range(train_xs.shape[0])])
                 model.lambdas[i] = Nk / train_xs.shape[0]
     #NOTE: you can use multivariate_normal like this:
     #probability_of_xn_given_mu_and_sigma = multivariate_normal(mean=mu, cov=sigma).pdf(xn)
-    #TODO: train the model, respecting args (note that dev_xs is None if args.nodev is True)
-    # raise NotImplementedError #remove when model training is implemented
+    #TODO: train the model, matpecting args (note that dev_xs is None if args.nodev is True)
     return model
 
 def average_log_likelihood(model, data, args):
@@ -135,7 +128,6 @@ def average_log_likelihood(model, data, args):
     from scipy.stats import multivariate_normal
     #TODO: implement average LL calculation (log likelihood of the data, divided by the length of the data)
     ll = 0.0
-    # raise NotImplementedError #remove when average log likelihood calculation is implemented
     for line in data:
         l = 0
         for i in range(len(model.lambdas)):
@@ -152,7 +144,6 @@ def extract_parameters(model):
     lambdas = model.lambdas
     mus = model.mus
     sigmas = model.sigmas
-    # raise NotImplementedError #remove when parameter extraction is implemented
     return lambdas, mus, sigmas
 
 def main():
@@ -174,14 +165,26 @@ def main():
         exit(1)
 
     train_xs, dev_xs = parse_data(args)
-    model = init_model(args)
-    model = train_model(model, train_xs, dev_xs, args)
-    ll_train = average_log_likelihood(model, train_xs, args)
-    print('Train LL: {}'.format(ll_train))
+    model1 = init_model(args)
+    model2 = init_model(args)
+    model3 = init_model(args)
+
+    model1 = train_model(model1, train_xs, dev_xs, args)
+    model2 = train_model(model2, train_xs, dev_xs, args)
+    model3 = train_model(model3, train_xs, dev_xs, args)
+
+    ll_train1 = average_log_likelihood(model1, train_xs, args)
+    ll_train2 = average_log_likelihood(model2, train_xs, args)
+    ll_train3 = average_log_likelihood(model3, train_xs, args)
+
+    print('Train LL: {}'.format((ll_train1+ll_train2+ll_train3)/3))
     if not args.nodev:
-        ll_dev = average_log_likelihood(model, dev_xs, args)
-        print('Dev LL: {}'.format(ll_dev))
-    lambdas, mus, sigmas = extract_parameters(model)
+        ll_dev1 = average_log_likelihood(model1, dev_xs, args)
+        ll_dev2 = average_log_likelihood(model2, dev_xs, args)
+        ll_dev3 = average_log_likelihood(model3, dev_xs, args)
+
+        print('Dev LL: {}'.format((ll_dev1+ll_dev2+ll_dev3)/3))
+    lambdas, mus, sigmas = extract_parameters(model1)
     if args.print_params:
         def intersperse(s):
             return lambda a: s.join(map(str,a))

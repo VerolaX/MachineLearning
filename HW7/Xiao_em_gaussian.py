@@ -30,13 +30,12 @@ class models:
 def init_model(args):
     if args.cluster_num:
         lambdas = np.zeros(args.cluster_num)
-        mus = np.zeros((args.cluster_num,2))
+        mus = np.zeros((args.cluster_num, 2))
         if not args.tied:
-            sigmas = np.zeros((args.cluster_num,2,2))
+            sigmas = np.zeros((args.cluster_num, 2, 2))
         else:
-            sigmas = np.zeros((2,2))
+            sigmas = np.zeros((2, 2))
         #TODO: randomly initialize clusters (lambdas, mus, and sigmas)
-        # raise NotImplementedError #remove when random initialization is implemented
         lambdas = np.random.rand(args.cluster_num)
         mus = np.random.rand(args.cluster_num, 2)
         
@@ -81,7 +80,6 @@ def init_model(args):
     #TODO: do whatever you want to pack the lambdas, mus, and sigmas into the model variable (just a tuple, or a class, etc.)
     #NOTE: if args.tied was provided, sigmas will have a different shape
     model = models(lambdas,mus,sigmas)
-    # raise NotImplementedError #remove when model initialization is implemented
     return model
 
 def train_model(model, train_xs, dev_xs, args):
@@ -89,21 +87,24 @@ def train_model(model, train_xs, dev_xs, args):
     #NOTE: you can use multivariate_normal like this:
     #probability_of_xn_given_mu_and_sigma = multivariate_normal(mean=mu, cov=sigma).pdf(xn)
 
-    res = np.zeros((train_xs.shape[0], args.cluster_num))
+    # P(Z|X^n)
+    mat = np.zeros((train_xs.shape[0], args.cluster_num))
     if not args.tied:
         for iter in range(args.iterations):
             for j in range(train_xs.shape[0]):
+                # sum(k') lambda_k * exp(...)
                 s = 0
                 for i in range(args.cluster_num):
                     s += (model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas[i]).pdf(train_xs[j]))
                 for z in range(args.cluster_num):
-                    res[j][z] = ((model.lambdas[z] * multivariate_normal(mean=model.mus[z], cov=model.sigmas[z]).pdf(train_xs[j])) / s)
+                    mat[j][z] = ((model.lambdas[z] * multivariate_normal(mean=model.mus[z], cov=model.sigmas[z]).pdf(train_xs[j])) / s)
 
             for i in range(args.cluster_num):
-                Nk = sum([res[x][i] for x in range(train_xs.shape[0])])
-                model.mus[i] = sum([res[x][i] * train_xs[x] for x in range(train_xs.shape[0])]) / Nk
+                # Nk: sum(n) of P(Z=k|X^n)
+                Nk = sum([mat[x][i] for x in range(train_xs.shape[0])])
 
-                model.sigmas[i] = sum([res[x][i] / Nk * (np.array([train_xs[x] - model.mus[i]]) * np.array([train_xs[x] - model.mus[i]]).T)for x in range(train_xs.shape[0])])
+                model.mus[i] = sum([mat[x][i] * train_xs[x] for x in range(train_xs.shape[0])]) / Nk
+                model.sigmas[i] = sum([mat[x][i] / Nk * (np.array([train_xs[x] - model.mus[i]]) * np.array([train_xs[x] - model.mus[i]]).T) for x in range(train_xs.shape[0])])
                 model.lambdas[i] = Nk / train_xs.shape[0]
 
     else:
@@ -113,17 +114,16 @@ def train_model(model, train_xs, dev_xs, args):
                 for i in range(args.cluster_num):
                     s += (model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas).pdf(train_xs[j]))
                 for z in range(args.cluster_num):
-                    res[j][z] = ((model.lambdas[z] * multivariate_normal(mean=model.mus[z], cov=model.sigmas).pdf(train_xs[j])) / s)
+                    mat[j][z] = ((model.lambdas[z] * multivariate_normal(mean=model.mus[z], cov=model.sigmas).pdf(train_xs[j])) / s)
 
             for i in range(args.cluster_num):
-                Nk = sum([res[x][i] for x in range(train_xs.shape[0])])
-                model.mus[i] = sum([res[x][i] * train_xs[x] for x in range(train_xs.shape[0])]) / Nk
-                model.sigmas = sum([res[x][i] / Nk * (np.array([train_xs[x] - model.mus[i]]) * np.array([train_xs[x] - model.mus[i]]).T) for x in range(train_xs.shape[0])])
+                Nk = sum([mat[x][i] for x in range(train_xs.shape[0])])
+                model.mus[i] = sum([mat[x][i] * train_xs[x] for x in range(train_xs.shape[0])]) / Nk
+                model.sigmas = sum([mat[x][i] / Nk * (np.array([train_xs[x] - model.mus[i]]) * np.array([train_xs[x] - model.mus[i]]).T) for x in range(train_xs.shape[0])])
                 model.lambdas[i] = Nk / train_xs.shape[0]
     #NOTE: you can use multivariate_normal like this:
     #probability_of_xn_given_mu_and_sigma = multivariate_normal(mean=mu, cov=sigma).pdf(xn)
-    #TODO: train the model, respecting args (note that dev_xs is None if args.nodev is True)
-    # raise NotImplementedError #remove when model training is implemented
+    #TODO: train the model, matpecting args (note that dev_xs is None if args.nodev is True)
     return model
 
 def average_log_likelihood(model, data, args):
@@ -131,15 +131,15 @@ def average_log_likelihood(model, data, args):
     from scipy.stats import multivariate_normal
     #TODO: implement average LL calculation (log likelihood of the data, divided by the length of the data)
     ll = 0.0
-    # raise NotImplementedError #remove when average log likelihood calculation is implemented
     for line in data:
-        l = 0
+        px = 0
         for i in range(len(model.lambdas)):
-            if len(model.sigmas.shape) == 3:
-                l += model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas[i]).pdf(line)
+            if not args.tied:
+                px += model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas[i]).pdf(line)
             else:
-                l += model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas).pdf(line)
-        ll += log(l)
+                px += model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas).pdf(line)
+        ll += log(px)
+    # average
     ll = ll / data.shape[0]
     return ll
 
@@ -148,7 +148,6 @@ def extract_parameters(model):
     lambdas = model.lambdas
     mus = model.mus
     sigmas = model.sigmas
-    # raise NotImplementedError #remove when parameter extraction is implemented
     return lambdas, mus, sigmas
 
 def main():
