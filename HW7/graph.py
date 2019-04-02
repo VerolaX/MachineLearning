@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 if not __file__.endswith('_em_gaussian.py'):
     print('ERROR: This file is not named correctly! Please name it as LastName_em_gaussian.py (replacing LastName with your last name)!')
     exit(1)
@@ -8,6 +10,8 @@ if not __file__.endswith('_em_gaussian.py'):
 # DATA_PATH = '/home/tianyou/MachineLearning/HW7/'
 DATA_PATH ='/Users/Robert/Desktop/MachineLearning/HW7/'
 
+cluster_nums = [1, 2, 3, 5, 10, 20, 50]
+iterations = [1, 2, 5, 10, 20, 50]
 
 def parse_data(args):
     num = float
@@ -93,7 +97,7 @@ def train_model(model, train_xs, dev_xs, args):
     if not args.tied:
         for iter in range(args.iterations):
             for j in range(train_xs.shape[0]):
-                s = 0
+                de = 0
                 for i in range(args.cluster_num):
                     s += (model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas[i]).pdf(train_xs[j]))
                 for z in range(args.cluster_num):
@@ -109,11 +113,11 @@ def train_model(model, train_xs, dev_xs, args):
     else:
         for iter in range(args.iterations):
             for j in range(train_xs.shape[0]):
-                s = 0
+                de = 0
                 for i in range(args.cluster_num):
-                    s += (model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas).pdf(train_xs[j]))
+                    de += (model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas).pdf(train_xs[j]))
                 for z in range(args.cluster_num):
-                    res[j][z] = ((model.lambdas[z] * multivariate_normal(mean=model.mus[z], cov=model.sigmas).pdf(train_xs[j])) / s)
+                    res[j][z] = ((model.lambdas[z] * multivariate_normal(mean=model.mus[z], cov=model.sigmas).pdf(train_xs[j])) / de)
 
             for i in range(args.cluster_num):
                 Nk = sum([res[x][i] for x in range(train_xs.shape[0])])
