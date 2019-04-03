@@ -5,8 +5,8 @@ if not __file__.endswith('_em_gaussian.py'):
     exit(1)
 
 # DATA_PATH = "/u/cs246/data/em/" #TODO: if doing development somewhere other than the cycle server (not recommended), then change this to the directory where your data file is (points.dat)
-# DATA_PATH = '/home/tianyou/MachineLearning/HW7/'
-DATA_PATH ='/Users/Robert/Desktop/MachineLearning/HW7/'
+DATA_PATH = '/home/tianyou/MachineLearning/HW7/'
+# DATA_PATH ='/Users/Robert/Desktop/MachineLearning/HW7/'
 
 
 def parse_data(args):
