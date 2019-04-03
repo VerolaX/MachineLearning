@@ -5,8 +5,8 @@ if not __file__.endswith('_em_gaussian.py'):
     exit(1)
 
 # DATA_PATH = "/u/cs246/data/em/" #TODO: if doing development somewhere other than the cycle server (not recommended), then change this to the directory where your data file is (points.dat)
-# DATA_PATH = '/home/tianyou/MachineLearning/HW7/'
-DATA_PATH ='/Users/Robert/Desktop/MachineLearning/HW7/'
+DATA_PATH = '/home/tianyou/MachineLearning/HW7/'
+# DATA_PATH ='/Users/Robert/Desktop/MachineLearning/HW7/'
 
 
 def parse_data(args):
@@ -110,6 +110,7 @@ def train_model(model, train_xs, dev_xs, args):
     else:
         for iter in range(args.iterations):
             for j in range(train_xs.shape[0]):
+                # sum(k') lambda_k * exp(...)
                 s = 0
                 for i in range(args.cluster_num):
                     s += (model.lambdas[i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas).pdf(train_xs[j]))
@@ -117,10 +118,13 @@ def train_model(model, train_xs, dev_xs, args):
                     mat[j][z] = ((model.lambdas[z] * multivariate_normal(mean=model.mus[z], cov=model.sigmas).pdf(train_xs[j])) / s)
 
             for i in range(args.cluster_num):
+                # Nk: sum(n) of P(Z=k|X^n)
                 Nk = sum([mat[x][i] for x in range(train_xs.shape[0])])
                 model.mus[i] = sum([mat[x][i] * train_xs[x] for x in range(train_xs.shape[0])]) / Nk
-                model.sigmas = sum([mat[x][i] / Nk * (np.array([train_xs[x] - model.mus[i]]) * np.array([train_xs[x] - model.mus[i]]).T) for x in range(train_xs.shape[0])])
+                model.sigmas += sum([mat[x][i] / Nk * (np.array([train_xs[x] - model.mus[i]]) * np.array([train_xs[x] - model.mus[i]]).T) for x in range(train_xs.shape[0])])
                 model.lambdas[i] = Nk / train_xs.shape[0]
+
+        model.sigmas = model.sigmas / (args.cluster_num * args.iterations)
     #NOTE: you can use multivariate_normal like this:
     #probability_of_xn_given_mu_and_sigma = multivariate_normal(mean=mu, cov=sigma).pdf(xn)
     #TODO: train the model, matpecting args (note that dev_xs is None if args.nodev is True)
