@@ -6,12 +6,12 @@ if not __file__.endswith('_hmm_gaussian.py'):
 
 DATA_PATH = "/u/cs246/data/em/" #TODO: if doing development somewhere other than the cycle server (not recommended), then change this to the directory where your data file is (points.dat)
 
-class models:
-    def __init__(self, initials, transitions, mus,sigmas):
+class Model:
+    def __init__(self, initials, transitions, mus, sigmas):
         self.initials = initials
         self.transitions = transitions
-        self.mus=mus
-        self.sigmas=sigmas
+        self.mus = mus
+        self.sigmas = sigmas
 
 def parse_data(args):
     num = float
@@ -38,14 +38,14 @@ def init_model(args):
         mus = np.random.rand(args.cluster_num, 2)
         if not args.tied:
             for c in range(args.cluster_num):
-            rand_sigma = list(np.random.rand(3))
-            for i in range(2):
-                for j in range(i, 2):
-                    sigmas[c][i][j] = rand_sigma.pop()
-            for i in range(1, 2):
-                for j in range(i):
-                    sigmas[c][i][j] = sigmas[c][j][i]
-            sigmas[c] += np.identity(2)
+                rand_sigma = list(np.random.rand(3))
+                for i in range(2):
+                    for j in range(i, 2):
+                        sigmas[c][i][j] = rand_sigma.pop()
+                for i in range(1, 2):
+                    for j in range(i):
+                        sigmas[c][i][j] = sigmas[c][j][i]
+                sigmas[c] += np.identity(2)
 
         else:
             rand_sigmas = list(np.random.rand(1000))
@@ -82,7 +82,7 @@ def init_model(args):
         args.cluster_num = len(initials)
 
     #TODO: Do whatever you want to pack mus, sigmas, initals, and transitions into the model variable (just a tuple, or a class, etc.)
-    model = models(initials, transitions, mus, sigmas)
+    model = Model(initials, transitions, mus, sigmas)
     # raise NotImplementedError #remove when model initialization is implemented
     return model
 
@@ -96,14 +96,49 @@ def forward(model, data, args):
     # and increment log_likelihood by the log of the value you normalized by. This will prevent the probabilities from going to 0, 
     # and the scaling will be cancelled out in train_model when you normalize (you don't need to do anything different than what's in the notes). 
     # This was discussed in class on April 3rd.
-    raise NotImplementedError
+
+    for c in range(args.cluster_num):
+        if not args.tied:
+            alphas[0, c] = model.initials[c] * multivariate_normal(mean=model.mus[c], cov=model.sigmas[c]).pdf(data[0])
+        else:
+            alphas[0, c] = model.initials[c] * multivariate_normal(mean=model.mus[c], cov=model.sigmas).pdf(data[0])
+
+    log_likelihood += log(np.sum(alphas[0,:]))
+    alphas[0,:] /= np.sum(alphas[0,:])
+
+    for t in range(1, len(data)):
+        for i in range(args.cluster_num):
+            for j in range(args.cluster_num):
+                if not tied:
+                    alpha[t, i] += alphas[t-1, j] * model.transitions[j, i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas[i]).pdf(data[t])
+                else:
+                    alpha[t, i] += alphas[t-1, j] * model.transitions[j, i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas).pdf(data[t])
+    
+        log_likelihood += log(np.sum(alphas[t, :]))
+        alphas[t, :] /= np.sum(alphas[0, :])
+
+
+    # raise NotImplementedError
     return alphas, log_likelihood
 
 def backward(model, data, args):
     from scipy.stats import multivariate_normal
     betas = np.zeros((len(data),args.cluster_num))
     #TODO: Calculate and return backward probabilities (normalized like in forward before)
-    raise NotImplementedError
+    for c in range(args.cluster):
+        betas[len(data)-1, c] = 1
+
+    betas[len(data)-1, :] /= np.sum(betas[len(data)-1, :])
+
+    for t in range(len(data)-2, -1, -1):
+        for i in range(args.cluster_num):
+            for j in range(args.cluster_num):
+                if not tied:
+                    betas[t, i] += model.transitions[i,j] * betas[t+1,j] * multivariate_normal(mean=model.mus[j], cov=model.sigmas[j]).pdf(data[t+1])
+                else:
+                    betas[t, i] += model.transitions[i,j] * betas[t+1,j] * multivariate_normal(mean=model.mus[j], cov=model.sigmas).pdf(data[t+1])
+        betas[t, :] /= np.sum(betas[t, :])
+    # raise NotImplementedError
     return betas
 
 def train_model(model, train_xs, dev_xs, args):
@@ -116,7 +151,9 @@ def average_log_likelihood(model, data, args):
     #TODO: implement average LL calculation (log likelihood of the data, divided by the length of the data)
     #NOTE: yes, this is very simple, because you did most of the work in the forward function above
     ll = 0.0
-    raise NotImplementedError #remove when average log likelihood calculation is implemented
+    _, ll = forward(model, data, args)
+    ll = ll / len(data)
+    # raise NotImplementedError #remove when average log likelihood calculation is implemented
     return ll
 
 def extract_parameters(model):
