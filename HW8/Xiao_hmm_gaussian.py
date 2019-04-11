@@ -4,7 +4,8 @@ if not __file__.endswith('_hmm_gaussian.py'):
     print('ERROR: This file is not named correctly! Please name it as Lastname_hmm_gaussian.py (replacing Lastname with your last name)!')
     exit(1)
 
-DATA_PATH = "/u/cs246/data/em/" #TODO: if doing development somewhere other than the cycle server (not recommended), then change this to the directory where your data file is (points.dat)
+# DATA_PATH = "/u/cs246/data/em/" #TODO: if doing development somewhere other than the cycle server (not recommended), then change this to the directory where your data file is (points.dat)
+DATA_PATH = "/Users/Robert/Desktop/MachineLearning/HW8/"
 
 class Model:
     def __init__(self, initials, transitions, mus, sigmas):
@@ -12,6 +13,7 @@ class Model:
         self.transitions = transitions
         self.mus = mus
         self.sigmas = sigmas
+
 
 def parse_data(args):
     num = float
@@ -97,25 +99,25 @@ def forward(model, data, args):
     # and the scaling will be cancelled out in train_model when you normalize (you don't need to do anything different than what's in the notes). 
     # This was discussed in class on April 3rd.
 
-    for c in range(args.cluster_num):
-        if not args.tied:
-            alphas[0, c] = model.initials[c] * multivariate_normal(mean=model.mus[c], cov=model.sigmas[c]).pdf(data[0])
-        else:
-            alphas[0, c] = model.initials[c] * multivariate_normal(mean=model.mus[c], cov=model.sigmas).pdf(data[0])
+    initials, transitions, mus, sigmas = extract_parameters(model)
 
-    log_likelihood += log(np.sum(alphas[0,:]))
-    alphas[0,:] /= np.sum(alphas[0,:])
-
-    for t in range(1, len(data)):
-        for i in range(args.cluster_num):
-            for j in range(args.cluster_num):
-                if not tied:
-                    alpha[t, i] += alphas[t-1, j] * model.transitions[j, i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas[i]).pdf(data[t])
+    for t in range(0, len(data)):
+        if t == 0:
+            for c in range(args.cluster_num):
+                if not args.tied:
+                    alphas[0, c] = initials[c] * multivariate_normal(mean=mus[c], cov=sigmas[c]).pdf(data[0])
                 else:
-                    alpha[t, i] += alphas[t-1, j] * model.transitions[j, i] * multivariate_normal(mean=model.mus[i], cov=model.sigmas).pdf(data[t])
-    
+                    alphas[0, c] = initials[c] * multivariate_normal(mean=mus[c], cov=sigmas).pdf(data[0])
+        else:            
+            for i in range(args.cluster_num):
+                for j in range(args.cluster_num):
+                    if not args.tied:
+                        alphas[t, i] += alphas[t-1, j] * transitions[j, i] * multivariate_normal(mean=mus[i], cov=sigmas[i]).pdf(data[t])
+                    else:
+                        alphas[t, i] += alphas[t-1, j] * transitions[j, i] * multivariate_normal(mean=mus[i], cov=sigmas).pdf(data[t])
+        
         log_likelihood += log(np.sum(alphas[t, :]))
-        alphas[t, :] /= np.sum(alphas[0, :])
+        alphas[t, :] /= np.sum(alphas[t, :])
 
 
     # raise NotImplementedError
@@ -123,20 +125,21 @@ def forward(model, data, args):
 
 def backward(model, data, args):
     from scipy.stats import multivariate_normal
-    betas = np.zeros((len(data),args.cluster_num))
+    betas = np.zeros((len(data), args.cluster_num))
     #TODO: Calculate and return backward probabilities (normalized like in forward before)
-    for c in range(args.cluster):
-        betas[len(data)-1, c] = 1
-
+    
+    betas[len(data)-1, :] = 1
     betas[len(data)-1, :] /= np.sum(betas[len(data)-1, :])
+
+    initials, transitions, mus, sigmas = extract_parameters(model)
 
     for t in range(len(data)-2, -1, -1):
         for i in range(args.cluster_num):
             for j in range(args.cluster_num):
-                if not tied:
-                    betas[t, i] += model.transitions[i,j] * betas[t+1,j] * multivariate_normal(mean=model.mus[j], cov=model.sigmas[j]).pdf(data[t+1])
+                if not args.tied:
+                    betas[t, i] += transitions[i,j] * betas[t+1,j] * multivariate_normal(mean=mus[j], cov=sigmas[j]).pdf(data[t+1])
                 else:
-                    betas[t, i] += model.transitions[i,j] * betas[t+1,j] * multivariate_normal(mean=model.mus[j], cov=model.sigmas).pdf(data[t+1])
+                    betas[t, i] += transitions[i,j] * betas[t+1,j] * multivariate_normal(mean=mus[j], cov=sigmas).pdf(data[t+1])
         betas[t, :] /= np.sum(betas[t, :])
     # raise NotImplementedError
     return betas
@@ -144,7 +147,52 @@ def backward(model, data, args):
 def train_model(model, train_xs, dev_xs, args):
     from scipy.stats import multivariate_normal
     #TODO: train the model, respecting args (note that dev_xs is None if args.nodev is True)
-    raise NotImplementedError #remove when model training is implemented
+    initials, transitions, mus, sigmas = extract_parameters(model)
+    num_data = train_xs.shape[0]
+
+    for iter in range(args.iterations):
+        # E step:
+        gamma = np.zeros((num_data, args.cluster_num))
+        xi = np.zeros((num_data, args.cluster_num, args.cluster_num))
+
+        alphas, _ = forward(model, train_xs, args)
+        betas = backward(model, train_xs, args)
+
+        for t in range(num_data):
+            for c in range(args.cluster_num):
+                gamma[:, c] = np.multiply(alphas[:, c], betas[:, c]) / np.sum(np.multiply(alphas, betas), axis=1)
+
+            for i in range(args.cluster_num):
+                for j in range(args.cluster_num):
+                    if t != 0:
+                        if not args.tied:
+                            xi[t, i, j] = alphas[t-1, i] * transitions[i, j] * multivariate_normal(mean=mus[j], cov=sigmas[j]).pdf(train_xs[t]) \
+                            * betas[t, j]
+                        else:
+                            xi[t, i, j] = alphas[t-1, i] * transitions[i, j] * multivariate_normal(mean=mus[j], cov=sigmas).pdf(train_xs[t]) \
+                            * betas[t, j]
+            if t != 0:
+                xi[t,:,:] /= np.sum(xi[t,:,:])
+
+        # M step
+        initials = gamma[0, :]
+        for i in range(args.cluster_num):
+            # Update mu
+            mus[i] = np.dot(gamma[:,i], train_xs) / np.sum(gamma[:,i])
+            # Update sigma
+            if not args.tied:
+                sigmas[i] = np.dot(gamma[:,i] * (train_xs - mus[i]).T, (train_xs - mus[i])) / np.sum(gamma[:,i])
+            else:
+                sigmas += np.dot(gamma[:,i] * (train_xs - mus[i]).T, (train_xs - mus[i]))
+            # Update transition matrix
+            for j in range(args.cluster_num):
+                transitions[i,j] = np.sum(xi[:,i,j]) / np.sum(gamma[:,i])
+
+        if args.tied:
+            sigmas = sigmas / args.cluster_num
+
+        model = Model(initials, transitions, mus, sigmas)
+    # raise NotImplementedError #remove when model training is implemented
     return model
 
 def average_log_likelihood(model, data, args):
