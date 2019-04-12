@@ -177,16 +177,15 @@ def train_model(model, train_xs, dev_xs, args):
         # M step
         initials = gamma[0, :]
         for i in range(args.cluster_num):
-            # Update mu
-            mus[i] = np.dot(gamma[:,i], train_xs) / np.sum(gamma[:,i])
-            # Update sigma
+            mus[i] = np.dot(gamma[:, i], train_xs) / np.sum(gamma[:, i])
+
             if not args.tied:
-                sigmas[i] = np.dot(gamma[:,i] * (train_xs - mus[i]).T, (train_xs - mus[i])) / np.sum(gamma[:,i])
+                sigmas[i] = np.dot(gamma[:, i] * (train_xs - mus[i]).T, (train_xs - mus[i])) / np.sum(gamma[:, i])
             else:
-                sigmas += np.dot(gamma[:,i] * (train_xs - mus[i]).T, (train_xs - mus[i]))
-            # Update transition matrix
+                sigmas += np.dot(gamma[:, i] * (train_xs - mus[i]).T, (train_xs - mus[i]))
+
             for j in range(args.cluster_num):
-                transitions[i,j] = np.sum(xi[:,i,j]) / np.sum(gamma[:,i])
+                transitions[i, j] = np.sum(xi[:, i, j]) / np.sum(gamma[:, i])
 
         if args.tied:
             sigmas = sigmas / args.cluster_num

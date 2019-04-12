@@ -2,7 +2,7 @@ Tianyou Xiao
 2985532 txiao3
 CSC246 HW8
 
-This homework requires us to implement the EM algorithm on a hidden markov model.
+This homework requires us to implement the EM algorithm to train a hidden markov model.
 
 Submitted files:
 Xiao_hmm_gaussian.py -- source code for this homework
