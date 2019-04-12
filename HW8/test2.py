@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 # DATA_PATH = "/u/cs246/data/em/" #TODO: if doing development somewhere other than the cycle server (not recommended), then change this to the directory where your data file is (points.dat)
 DATA_PATH = "/Users/Robert/Desktop/MachineLearning/HW8/"
-DATA_PATH = '/home/tianyou/MachineLearning/HW7/'
+# DATA_PATH = '/home/tianyou/MachineLearning/HW7/'
 
 iteration_list = list([1,10,20,50])
 cluster_numbers = list([2,3,4,5,10,20])
