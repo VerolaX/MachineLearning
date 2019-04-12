@@ -6,15 +6,83 @@ This homework requires us to implement the EM algorithm to train a hidden markov
 
 Submitted files:
 Xiao_hmm_gaussian.py -- source code for this homework
-tied.png -- picture that shows the log likelihood change corresponding to changes in cluster number and iterations with one single covariance matrix for all clusters
-not_tied.png -- picture that shows the log likelihood change corresponding to changes in cluster number and iterations with different covariance matrix for each cluster
-tied.csv -- a csv file that contains the experiment results, providing --tied argument. It records the log likelihood based on different combinations of cluster numbers and iteration numbers.
-not_tied.csv -- a csv file that contains the experiment results with different covariance matrix for different clusters.
-README
+README -- the readme file that contains the experiment results and conclusions
 
-For the experiment, since according to the results from the last homework, increase in the iteration numbers usually means higher log likehood, this time I only choose iteration numbers from (1,10,20,50) to see the result. For the cluster numbers, I choose from (2,3,4,5,10,20,50) this time to run the test. Since there are some randomness during initialization of the model, there will be some slight differences between results of experiments with same arguments. Therefore, I repeatedly run each model with same arguments 3 times and take the average of their log likelihood for both training and development data, and both in tied and untied case. 
+For the experiment, since according to the results from the last homework, increase in the iteration numbers usually means higher log likehood, this time I only choose iteration numbers from (1,10,20,50) to see the result. For the cluster numbers, I choose from (2,3,4,5,10,20,50) this time to run the test. Since there are some randomness during initialization of the model, there will be some slight differences between results of experiments with same arguments. Therefore, I repeatedly run each model with same arguments 3 times and take the average of their log likelihood for both training and development data, and both in tied and untied case. Here are the results under untied case (using different covariance matrices):
 
-For the tied case, the overall trend of LL is similar to the untied case, and the values are slightly lower than the untied case. However, there are some peculiarities in the detailed trend of the lines, as some of the LL decrease. What's more, as the cluster number increase ,the mu for each cluster tends to closer and since their covariance matrices are the same, and the shape of cluster is becoming similar, which does not really make sense here. Therefore, from my point of view, the output is not that reliable.
+Cluster Number:  2 || Iterations:  1
+Train LL: -4.694078736799746 || Dev LL: -4.749161120664144
 
-By comparing the values of log likelihood of HMM model and mixture of Gaussian (non-sequence model), we can see that the HMM model is better than GMM model. (when iteration=50, cluster_num=5, LL of development data of GMM is around -4.33 while LL_dev of HMM is around -3.72).
+Cluster Number:  2 || Iterations:  10
+Train LL: -4.447889215333275 ||Dev LL: -4.544858429104919
+
+Cluster Number:  2 || Iterations:  20
+Train LL: -4.397935824176826 || Dev LL: -4.516923150677306
+
+Cluster Number:  2 || Iterations:  50
+Train LL: -4.33263721203812 || Dev LL: -4.437794156263618
+
+Cluster Number:  3 || Iterations:  1
+Train LL: -4.617085485066049 || Dev LL: -4.694147304077892
+
+Cluster Number:  3 || Iterations:  10
+Train LL: -4.286190441695402 || Dev LL: -4.3809092500546845
+
+Cluster Number:  3 || Iterations:  20
+Train LL: -4.052339568816932 || Dev LL: -4.1184022406786704
+
+Cluster Number:  3 || Iterations:  50
+Train LL: -4.084933143104984 || Dev LL: -4.134568422790136
+
+Cluster Number:  4 || Iterations:  1
+Train LL: -4.732582226454705 || Dev LL: -4.819783290528664
+
+Cluster Number:  4 || Iterations:  10
+Train LL: -3.8732536294161886 || Dev LL: -3.8950616421155657
+
+Cluster Number:  4 || Iterations:  20
+Train LL: -3.729231341038645 || Dev LL: -3.7099893503710466
+
+Cluster Number:  4 || Iterations:  50
+Train LL: -3.7292294261699346 || Dev LL: -3.709982592398449
+
+Cluster Number:  5 || Iterations:  1
+Train LL: -4.664942386153516 || Dev LL: -4.74875550561378
+
+Cluster Number:  5 || Iterations:  10
+Train LL: -3.761164386622275 || Dev LL: -3.7506853395518824
+
+Cluster Number:  5 || Iterations:  20
+Train LL: -3.7252262215042085 || Dev LL: -3.7109130512848396
+
+Cluster Number:  5 || Iterations:  50
+Train LL: -3.72000905285542 || Dev LL: -3.7100815718565205
+
+Cluster Number:  10 || Iterations:  1
+Train LL: -4.5918168685290235 || Dev LL: -4.686016401488033
+
+Cluster Number:  10 || Iterations:  10
+Train LL: -3.7206461254134453 || Dev LL: -3.7206993836899045
+
+Cluster Number:  10 || Iterations:  20
+Train LL: -3.70119258292546 || Dev LL: -3.7321264956239157
+
+Cluster Number:  10 || Iterations:  50
+Train LL: -3.6851502948834742 || Dev LL: -3.7688069111671223
+
+Cluster Number:  20 || Iterations:  1
+Train LL: -4.649274907537973 || Dev LL: -4.737361886910047
+
+Cluster Number:  20 || Iterations:  10
+Train LL: -3.703574578374877 || Dev LL: -3.7343069086953213
+
+Cluster Number:  20 || Iterations:  20
+Train LL: -3.6846542315648946 || Dev LL: -3.7465135431564892
+
+Cluster Number:  20 || Iterations:  50
+Train LL: -3.675146511324487 || Dev LL: -3.7616578952167896
+
+From the result above, I listed all the log likelihood of development data to see their performance under different numbers of state after 50 iterations. (-4.437794156263618, -4.134568422790136, -3.709982592398449, -3.7100815718565205, -3.7688069111671223, -3.7616578952167896). We can see that when state number = 4, the model has the best performance. For small state numbers, such as 2,3 and 4, the training LL always goes up as the number of iterations increases. For higher state number values, after more iterations, even though the training log likelihoods still tend to goes up when comparing with small state numbers, the development log likelihoods tend to goes down, as the model may encounter overfitting.
+
+By comparing the values of log likelihood of HMM model and mixture of Gaussian (non-sequence model), we can see that the HMM model is better than GMM model. (when iteration=50, cluster_num=5, LL of development data of GMM is around -4.33 while LL_dev of HMM is around -3.72. The average log likelihood is between -3.70 to -3.75, which is still much better than those of GMM models.).
 
