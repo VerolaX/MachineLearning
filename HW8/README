@@ -1,0 +1,19 @@
+Tianyou Xiao
+2985532 txiao3
+CSC246 HW8
+
+This homework requires us to implement the EM algorithm on a hidden markov model.
+
+Submitted files:
+Xiao_hmm_gaussian.py -- source code for this homework
+tied.png -- picture that shows the log likelihood change corresponding to changes in cluster number and iterations with one single covariance matrix for all clusters
+not_tied.png -- picture that shows the log likelihood change corresponding to changes in cluster number and iterations with different covariance matrix for each cluster
+tied.csv -- a csv file that contains the experiment results, providing --tied argument. It records the log likelihood based on different combinations of cluster numbers and iteration numbers.
+not_tied.csv -- a csv file that contains the experiment results with different covariance matrix for different clusters.
+README
+
+For the experiment, I choose different iteration numbers ([1,2,5,10,20,50]) and different cluster numbers ([1,2,3,5,7,10,20,50,100]) to run the test. Since there are some randomness during initialization of the model, there will be some slight differences between results of experiments with same arguments. Therefore, I repeatedly run each test with same arguments 3 times and take the average of their log likelihood of both training and development data, and both in tied and untied case. The LL values of untied case are slightly higher than those of the tied case. I record the data into the two csv files, which are also submitted.
+
+I also graph the test results based on the data I recorded. For the untied case, based on the graph, we can see that overall, as the number of clusters increases or the iteration numbers increases, the log likelihood will increase (or be closer to 0). The higher log likelihood with more iterations is intuitive, since the EM algorithm is guaranteed to have better performance as more training is involved. The increase in clusters will also increase the LL. 100 clusters for 100 data points will just get the best result, which is also shown in the graph. I believe that some drop in the LL as the iterations increase is due to randomness of the model.
+
+For the tied case, the overall trend of LL is similar to the untied case, and the values are slightly lower than the untied case. However, there are some peculiarities in the detailed trend of the lines, as some of the LL decrease. What's more, as the cluster number increase ,the mu for each cluster tends to closer and since their covariance matrices are the same, and the shape of cluster is becoming similar, which does not really make sense here. Therefore, from my point of view, the output is not that reliable.
