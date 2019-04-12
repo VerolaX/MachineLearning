@@ -4,8 +4,8 @@ if not __file__.endswith('_hmm_gaussian.py'):
     print('ERROR: This file is not named correctly! Please name it as Lastname_hmm_gaussian.py (replacing Lastname with your last name)!')
     exit(1)
 
-# DATA_PATH = "/u/cs246/data/em/" #TODO: if doing development somewhere other than the cycle server (not recommended), then change this to the directory where your data file is (points.dat)
-DATA_PATH = "/Users/Robert/Desktop/MachineLearning/HW8/"
+DATA_PATH = "/u/cs246/data/em/" #TODO: if doing development somewhere other than the cycle server (not recommended), then change this to the directory where your data file is (points.dat)
+# DATA_PATH = "/Users/Robert/Desktop/MachineLearning/HW8/"
 
 class Model:
     def __init__(self, initials, transitions, mus, sigmas):
@@ -183,11 +183,11 @@ def train_model(model, train_xs, dev_xs, args):
             if not args.tied:
                 sigmas[i] = np.dot(gamma[:, i] * (train_xs - mus[i]).T, (train_xs - mus[i])) / np.sum(gamma[:, i])
             else:
-                sigmas += np.dot(gamma[:, i] * (train_xs - mus[i]).T, (train_xs - mus[i])) / np.sum(gamma[:, i]) / args.cluster_num
+                sigmas = np.dot(gamma[:, i] * (train_xs - mus[i]).T, (train_xs - mus[i])) / np.sum(gamma[:, i])
 
             for j in range(args.cluster_num):
                 transitions[i, j] = np.sum(xi[:, i, j]) / np.sum(gamma[:, i])         
-        if args.tied:
+
             
         model = Model(initials, transitions, mus, sigmas)
     # raise NotImplementedError #remove when model training is implemented
