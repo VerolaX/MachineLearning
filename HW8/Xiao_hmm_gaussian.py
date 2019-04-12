@@ -64,7 +64,7 @@ def init_model(args):
         transitions = np.random.rand(args.cluster_num,args.cluster_num)
         transitions = transitions/transitions.sum(axis=1,keepdims=1)
         # raise NotImplementedError #remove when random initialization is implemented
-        
+
     else:
         mus = []
         sigmas = []
@@ -187,7 +187,8 @@ def train_model(model, train_xs, dev_xs, args):
 
             for j in range(args.cluster_num):
                 transitions[i, j] = np.sum(xi[:, i, j]) / np.sum(gamma[:, i])         
-
+        if args.tied:
+            
         model = Model(initials, transitions, mus, sigmas)
     # raise NotImplementedError #remove when model training is implemented
     return model
