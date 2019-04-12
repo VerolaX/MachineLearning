@@ -182,7 +182,7 @@ def train_model(model, train_xs, dev_xs, args):
             if not args.tied:
                 sigmas[i] = np.dot(gamma[:, i] * (train_xs - mus[i]).T, (train_xs - mus[i])) / np.sum(gamma[:, i])
             else:
-                sigmas += np.dot(gamma[:, i] * (train_xs - mus[i]).T, (train_xs - mus[i]))
+                sigmas += np.dot(gamma[:, i] * (train_xs - mus[i]).T, (train_xs - mus[i])) / np.sum(gamma[:, i])
 
             for j in range(args.cluster_num):
                 transitions[i, j] = np.sum(xi[:, i, j]) / np.sum(gamma[:, i])

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import numpy as np
 import time
+import seaborn as sns
+import matplotlib.pyplot as plt
 # if not __file__.endswith('_hmm_gaussian.py'):
 #     print('ERROR: This file is not named correctly! Please name it as Lastname_hmm_gaussian.py (replacing Lastname with your last name)!')
 #     exit(1)
@@ -155,6 +157,9 @@ def train_model(model, train_xs, dev_xs, args):
     initials, transitions, mus, sigmas = extract_parameters(model)
     num_data = train_xs.shape[0]
 
+    ll_train = []
+    ll_dev = []
+
     for iter in range(args.iterations):
         # E step:
         gamma = np.zeros((num_data, args.cluster_num))
@@ -194,10 +199,15 @@ def train_model(model, train_xs, dev_xs, args):
 
         model = Model(initials, transitions, mus, sigmas)
 
+        ll_train.append(average_log_likelihood(model, train_xs, args))
+
+        if not args.nodev:
+            ll_dev.append(average_log_likelihood(model, dev_xs, args))
+
     if args.tied:
         model.sigmas = model.sigmas / args.iterations
     # raise NotImplementedError #remove when model training is implemented
-    return model
+    return model, ll_train, ll_dev
 
 def average_log_likelihood(model, data, args):
     #TODO: implement average LL calculation (log likelihood of the data, divided by the length of the data)
@@ -243,50 +253,43 @@ def main():
     for cluster_num in cluster_numbers:
         ll_train = []
         ll_dev = []
-        for iters in iteration_list:
-            if args.tied:
-                print("tied")
-            start = time.time()
-            args.iterations = iters
-            args.cluster_num = cluster_num
+        if args.tied:
+            print("tied")
+        start = time.time()
+        args.iterations = 50
+        args.cluster_num = cluster_num
 
-            print("Cluster Number: ", args.cluster_num, "|| Iterations: ", args.iterations)
-            train_xs, dev_xs = parse_data(args)
-            model1 = init_model(args)
-            model2 = init_model(args)
-            model3 = init_model(args)
-            # model4 = init_model(args)
-            # model5 = init_model(args)
+        print("Cluster Number: ", args.cluster_num, "|| Iterations: ", args.iterations)
+        train_xs, dev_xs = parse_data(args)
+        model1 = init_model(args)
+        model2 = init_model(args)
+        model3 = init_model(args)
+        # model4 = init_model(args)
+        # model5 = init_model(args)
 
-            model1 = train_model(model1, train_xs, dev_xs, args)
-            model2 = train_model(model2, train_xs, dev_xs, args)
-            model3 = train_model(model3, train_xs, dev_xs, args)
-            # model4 = train_model(model4, train_xs, dev_xs, args)
-            # model5 = train_model(model5, train_xs, dev_xs, args)
+        model1, ll_train1, ll_dev1 = train_model(model1, train_xs, dev_xs, args)
+        model2, ll_train2, ll_dev2 = train_model(model2, train_xs, dev_xs, args)
+        model3, ll_train3, ll_dev3 = train_model(model3, train_xs, dev_xs, args)
+        # model4 = train_model(model4, train_xs, dev_xs, args)
+        # model5 = train_model(model5, train_xs, dev_xs, args)
 
-            ll_train1 = average_log_likelihood(model1, train_xs, args)
-            ll_train2 = average_log_likelihood(model2, train_xs, args)
-            ll_train3 = average_log_likelihood(model3, train_xs, args)
-            # ll_train4 = average_log_likelihood(model4, train_xs, args)
-            # ll_train5 = average_log_likelihood(model5, train_xs, args)
+        # ll_train1 = average_log_likelihood(model1, train_xs, args)
+        # ll_train2 = average_log_likelihood(model2, train_xs, args)
+        # ll_train3 = average_log_likelihood(model3, train_xs, args)
+        # ll_train4 = average_log_likelihood(model4, train_xs, args)
+        # ll_train5 = average_log_likelihood(model5, train_xs, args)
 
-            average_ll_train = (ll_train1+ll_train2+ll_train3) / 3
-            ll_train.append(average_ll_train)
-            print('Train LL: {}'.format(average_ll_train))
-            if not args.nodev:
-                ll_dev1 = average_log_likelihood(model1, dev_xs, args)
-                ll_dev2 = average_log_likelihood(model2, dev_xs, args)
-                ll_dev3 = average_log_likelihood(model3, dev_xs, args)
-                average_ll_dev = (ll_dev1+ll_dev2+ll_dev3) / 3
-                ll_dev.append(average_ll_dev)
-                print('Dev LL: {}'.format(average_ll_dev))
+        average_ll_train = (ll_train1+ll_train2+ll_train3) / 3
+        average_ll_dev = (ll_dev1+ll_dev2+ll_dev3) / 3
 
-            print("Time: ", time.time() - start, "\n")
-            ll_trains.append(ll_train)
-            ll_devs.append(ll_dev)
+        ll_trains.append(average_ll_train)
+        ll_devs.append(average_ll_dev)
+        ll_train.append(average_ll_train)
+        print('Train LL: {}'.format(average_ll_train))
+       
+        print('Dev LL: {}'.format(average_ll_dev))
 
-    import seaborn as sns
-    import matplotlib.pyplot as plt
+        print("Time: ", time.time() - start, "\n")
 
     f, axarr = plt.subplots(2, sharex=True)
     # f2, axarr2 = plt.subplots(2, sharex=True)
@@ -297,18 +300,18 @@ def main():
 
     for i in range(len(cluster_numbers)):
         for ll_train in ll_trains:
-            axarr[0].plot(iterations, ll_train, c=pal[i], label='cluster_num={}'.format(cluster_num[i]))
-            axarr[0].set_ylim(-4.9, -3.5)
-            axarr[0].legend(loc='upper center', prop={'size': 6}, bbox_to_anchor=(0.5, 1.05), ncol=3, fancybox=True, shadow=True)
+            x_axis = list(range(1,101))
+            axarr[0].plot(x_axis, ll_train, c=pal[i], label='cluster_num={}'.format(cluster_num[i]))
+            axarr[0].legend(loc='lower right')
             axarr[0].set_title('Training')
         for ll_dev in ll_devs:
-            axarr[1].plot(iterations, ll_dev, c=pal[i], label='cluster_num={}'.format(cluster_nums[i]))
+            axarr[1].plot(x_axis, ll_dev, c=pal[i], label='cluster_num={}'.format(cluster_nums[i]))
             axarr[1].set_title('Dev')
 
     if args.tied:
-        f.savefig('tied3.png', dpi=300)
+        f.savefig('tied2.png', dpi=300)
     else:
-        f.savefig('not_tied3.png', dpi=300)
+        f.savefig('not_tied2.png', dpi=300)
 
     initials, transitions, mus, sigmas = extract_parameters(model)
     if args.print_params:
