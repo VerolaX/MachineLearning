@@ -262,14 +262,14 @@ def main():
         print("Cluster Number: ", args.cluster_num, "|| Iterations: ", args.iterations)
         train_xs, dev_xs = parse_data(args)
         model1 = init_model(args)
-        model2 = init_model(args)
-        model3 = init_model(args)
+        # model2 = init_model(args)
+        # model3 = init_model(args)
         # model4 = init_model(args)
         # model5 = init_model(args)
 
         model1, ll_train1, ll_dev1 = train_model(model1, train_xs, dev_xs, args)
-        model2, ll_train2, ll_dev2 = train_model(model2, train_xs, dev_xs, args)
-        model3, ll_train3, ll_dev3 = train_model(model3, train_xs, dev_xs, args)
+        # model2, ll_train2, ll_dev2 = train_model(model2, train_xs, dev_xs, args)
+        # model3, ll_train3, ll_dev3 = train_model(model3, train_xs, dev_xs, args)
         # model4 = train_model(model4, train_xs, dev_xs, args)
         # model5 = train_model(model5, train_xs, dev_xs, args)
 
@@ -279,15 +279,12 @@ def main():
         # ll_train4 = average_log_likelihood(model4, train_xs, args)
         # ll_train5 = average_log_likelihood(model5, train_xs, args)
 
-        average_ll_train = (ll_train1+ll_train2+ll_train3) / 3
-        average_ll_dev = (ll_dev1+ll_dev2+ll_dev3) / 3
+        # average_ll_train = (ll_train1+ll_train2+ll_train3) / 3
+        # average_ll_dev = (ll_dev1+ll_dev2+ll_dev3) / 3
 
-        ll_trains.append(average_ll_train)
-        ll_devs.append(average_ll_dev)
-        ll_train.append(average_ll_train)
-        print('Train LL: {}'.format(average_ll_train))
-       
-        print('Dev LL: {}'.format(average_ll_dev))
+        ll_trains.append(ll_train1)
+        ll_devs.append(ll_dev1)
+
 
         print("Time: ", time.time() - start, "\n")
 
@@ -301,11 +298,11 @@ def main():
     for i in range(len(cluster_numbers)):
         for ll_train in ll_trains:
             x_axis = list(range(1,101))
-            axarr[0].plot(x_axis, ll_train, c=pal[i], label='cluster_num={}'.format(cluster_num[i]))
+            axarr[0].plot(x_axis, ll_train, c=pal[i], label='cluster_num={}'.format(cluster_numbers[i]))
             axarr[0].legend(loc='lower right')
             axarr[0].set_title('Training')
         for ll_dev in ll_devs:
-            axarr[1].plot(x_axis, ll_dev, c=pal[i], label='cluster_num={}'.format(cluster_nums[i]))
+            axarr[1].plot(x_axis, ll_dev, c=pal[i], label='cluster_num={}'.format(cluster_numbers[i]))
             axarr[1].set_title('Dev')
 
     if args.tied:
