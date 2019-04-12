@@ -62,7 +62,9 @@ def init_model(args):
         rand = np.random.rand(args.cluster_num)
         initials = rand/sum(rand)
         transitions = np.random.rand(args.cluster_num,args.cluster_num)
+        transitions = transitions/transitions.sum(axis=1,keepdims=1)
         # raise NotImplementedError #remove when random initialization is implemented
+        
     else:
         mus = []
         sigmas = []
@@ -178,17 +180,13 @@ def train_model(model, train_xs, dev_xs, args):
         initials = gamma[0, :]
         for i in range(args.cluster_num):
             mus[i] = np.dot(gamma[:, i], train_xs) / np.sum(gamma[:, i])
-
             if not args.tied:
                 sigmas[i] = np.dot(gamma[:, i] * (train_xs - mus[i]).T, (train_xs - mus[i])) / np.sum(gamma[:, i])
             else:
-                sigmas += np.dot(gamma[:, i] * (train_xs - mus[i]).T, (train_xs - mus[i])) / np.sum(gamma[:, i])
+                sigmas += np.dot(gamma[:, i] * (train_xs - mus[i]).T, (train_xs - mus[i])) / np.sum(gamma[:, i]) / args.cluster_num
 
             for j in range(args.cluster_num):
-                transitions[i, j] = np.sum(xi[:, i, j]) / np.sum(gamma[:, i])
-
-        if args.tied:
-            sigmas = sigmas / args.cluster_num
+                transitions[i, j] = np.sum(xi[:, i, j]) / np.sum(gamma[:, i])         
 
         model = Model(initials, transitions, mus, sigmas)
     # raise NotImplementedError #remove when model training is implemented

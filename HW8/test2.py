@@ -205,7 +205,7 @@ def train_model(model, train_xs, dev_xs, args):
             ll_dev.append(average_log_likelihood(model, dev_xs, args))
 
     if args.tied:
-        model.sigmas = model.sigmas / args.iterations
+        model.sigmas = model.sigmas / (args.iterations * args.cluster_num)
     # raise NotImplementedError #remove when model training is implemented
     return model, ll_train, ll_dev
 
@@ -310,7 +310,7 @@ def main():
     else:
         f.savefig('not_tied2.png', dpi=300)
 
-    initials, transitions, mus, sigmas = extract_parameters(model)
+    initials, transitions, mus, sigmas = extract_parameters(model1)
     if args.print_params:
         def intersperse(s):
             return lambda a: s.join(map(str,a))

@@ -34,6 +34,41 @@ def parse_data(args):
 
 def init_model(args):
     if args.cluster_num:
+        # mus = np.zeros((args.cluster_num,2))
+        # if not args.tied:
+        #     sigmas = np.zeros((args.cluster_num,2,2))
+        # else:
+        #     sigmas = np.zeros((2,2))
+        # transitions = np.zeros((args.cluster_num,args.cluster_num)) #transitions[i][j] = probability of moving from cluster i to cluster j
+        # initials = np.zeros(args.cluster_num) #probability for starting in each state
+        # #TODO: randomly initialize clusters (mus, sigmas, initials, and transitions)
+        # mus = np.random.rand(args.cluster_num, 2)
+        # if not args.tied:
+        #     for c in range(args.cluster_num):
+        #         rand_sigma = list(np.random.rand(3))
+        #         for i in range(2):
+        #             for j in range(i, 2):
+        #                 sigmas[c][i][j] = rand_sigma.pop()
+        #         for i in range(1, 2):
+        #             for j in range(i):
+        #                 sigmas[c][i][j] = sigmas[c][j][i]
+        #         sigmas[c] += np.identity(2)
+
+        # else:
+        #     rand_sigmas = list(np.random.rand(1000))
+        #     for i in range(2):
+        #         for j in range(i, 2):
+        #             sigmas[i][j] = rand_sigmas.pop()
+        #     for i in range(1, 2):
+        #         for j in range(i):
+        #             sigmas[j][i] = sigmas[i][j]
+        #     sigmas += np.identity(2)
+
+        # rand = np.random.rand(args.cluster_num)
+        # initials = rand/sum(rand)
+        # transitions = np.random.rand(args.cluster_num,args.cluster_num)
+        # raise NotImplementedError #remove when random initialization is implemented
+
         mus = np.zeros((args.cluster_num,2))
         if not args.tied:
             sigmas = np.zeros((args.cluster_num,2,2))
@@ -42,32 +77,24 @@ def init_model(args):
         transitions = np.zeros((args.cluster_num,args.cluster_num)) #transitions[i][j] = probability of moving from cluster i to cluster j
         initials = np.zeros(args.cluster_num) #probability for starting in each state
         #TODO: randomly initialize clusters (mus, sigmas, initials, and transitions)
+
+        # Set seed
+        seed = 12345
+        np.random.seed(seed)
+
+        # Initialize mu
         mus = np.random.rand(args.cluster_num, 2)
+        # Initialize sigmas
         if not args.tied:
-            for c in range(args.cluster_num):
-                rand_sigma = list(np.random.rand(3))
-                for i in range(2):
-                    for j in range(i, 2):
-                        sigmas[c][i][j] = rand_sigma.pop()
-                for i in range(1, 2):
-                    for j in range(i):
-                        sigmas[c][i][j] = sigmas[c][j][i]
-                sigmas[c] += np.identity(2)
-
+            sigmas = np.array([np.eye(2) for i in range(args.cluster_num)])
         else:
-            rand_sigmas = list(np.random.rand(1000))
-            for i in range(2):
-                for j in range(i, 2):
-                    sigmas[i][j] = rand_sigmas.pop()
-            for i in range(1, 2):
-                for j in range(i):
-                    sigmas[j][i] = sigmas[i][j]
-            sigmas += np.identity(2)
-
-        rand = np.random.rand(args.cluster_num)
-        initials = rand/sum(rand)
+            sigmas = np.eye(2)
+        # Initialize transition matrix
         transitions = np.random.rand(args.cluster_num,args.cluster_num)
-        # raise NotImplementedError #remove when random initialization is implemented
+        # Normalize each row to have sum of 1
+        transitions = transitions/transitions.sum(axis=1,keepdims=1)
+        # Initialize initial distribution
+        initials = np.array([1/args.cluster_num for i in range(args.cluster_num)])
     else:
         mus = []
         sigmas = []
@@ -181,6 +208,7 @@ def train_model(model, train_xs, dev_xs, args):
 
         # M step
         initials = gamma[0, :]
+        
         for i in range(args.cluster_num):
             mus[i] = np.dot(gamma[:, i], train_xs) / np.sum(gamma[:, i])
 
@@ -297,12 +325,12 @@ def main():
 
     for i in range(len(cluster_numbers)):
         for ll_train in ll_trains:
-            axarr[0].plot(iterations, ll_train, c=pal[i], label='cluster_num={}'.format(cluster_num[i]))
+            axarr[0].plot(iteration_list, ll_train, c=pal[i], label='cluster_num={}'.format(cluster_numbers[i]))
             axarr[0].set_ylim(-4.9, -3.5)
             axarr[0].legend(loc='upper center', prop={'size': 6}, bbox_to_anchor=(0.5, 1.05), ncol=3, fancybox=True, shadow=True)
             axarr[0].set_title('Training')
         for ll_dev in ll_devs:
-            axarr[1].plot(iterations, ll_dev, c=pal[i], label='cluster_num={}'.format(cluster_nums[i]))
+            axarr[1].plot(iteration_list, ll_dev, c=pal[i], label='cluster_num={}'.format(cluster_numbers[i]))
             axarr[1].set_title('Dev')
 
     if args.tied:
@@ -310,7 +338,7 @@ def main():
     else:
         f.savefig('not_tied3.png', dpi=300)
 
-    initials, transitions, mus, sigmas = extract_parameters(model)
+    initials, transitions, mus, sigmas = extract_parameters(model1)
     if args.print_params:
         def intersperse(s):
             return lambda a: s.join(map(str,a))
